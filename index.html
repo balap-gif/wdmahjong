@@ -48,7 +48,7 @@
             <div id="loginError" class="hidden bg-red-500/20 border border-red-500/30 text-red-300 p-3 rounded-xl mb-4 text-sm"></div>
             <input type="email" id="loginEmail" placeholder="Gmail Staf" class="w-full p-3.5 mb-3 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-sky-500 text-white">
             <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3.5 mb-5 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-sky-500 text-white">
-            <button onclick="login()" id="btnLogin" class="w-full bg-sky-600 hover:bg-sky-500 p-3.5 rounded-xl font-bold transition text-lg"><i class="fa-solid fa-right-to-bracket mr-2"></i> Masuk</button>
+            <button onclick="window.login()" id="btnLogin" class="w-full bg-sky-600 hover:bg-sky-500 p-3.5 rounded-xl font-bold transition text-lg"><i class="fa-solid fa-right-to-bracket mr-2"></i> Masuk</button>
             <div class="flex justify-center mt-4"><button onclick="showRegister()" class="text-sm text-slate-400 hover:text-sky-400 underline">Belum punya akun? Daftar</button></div>
         </div>
     </div>
@@ -60,7 +60,7 @@
             <div id="regError" class="hidden bg-red-500/20 border border-red-500/30 text-red-300 p-3 rounded-xl mb-4 text-sm"></div>
             <input type="email" id="regEmail" placeholder="Gmail Anda" class="w-full p-3.5 mb-3 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-emerald-500 text-white">
             <input type="password" id="regPassword" placeholder="Buat Password (Min 6)" class="w-full p-3.5 mb-5 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-emerald-500 text-white">
-            <button onclick="register()" id="btnRegister" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3.5 rounded-xl font-bold transition text-lg"><i class="fa-solid fa-user-plus mr-2"></i> Daftar</button>
+            <button onclick="window.register()" id="btnRegister" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3.5 rounded-xl font-bold transition text-lg"><i class="fa-solid fa-user-plus mr-2"></i> Daftar</button>
             <div class="flex justify-center mt-4"><button onclick="showLogin()" class="text-sm text-slate-400 hover:text-sky-400 underline">Sudah punya akun? Login</button></div>
         </div>
     </div>
@@ -101,9 +101,9 @@
 
         <div class="flex-1 bg-overlay min-h-screen overflow-y-auto p-8">
             <div class="flex justify-between items-center mb-8">
-                <div><h2 id="pageTitle" class="text-3xl font-bold text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Dashboard</h2><p id="pageDesc" class="text-slate-400 text-sm mt-1">Selamat datang</p></div>
+                <div><h2 id="pageTitle" class="text-3xl font-bold text-white">Dashboard</h2><p id="pageDesc" class="text-slate-400 text-sm mt-1">Selamat datang</p></div>
                 <div class="text-right">
-                    <div id="liveClock" class="text-2xl font-mono text-sky-400 font-bold tracking-wider drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]"></div>
+                    <div id="liveClock" class="text-2xl font-mono text-sky-400 font-bold tracking-wider"></div>
                     <div id="liveDate" class="text-xs text-slate-400 mt-1"></div>
                 </div>
             </div>
@@ -142,6 +142,7 @@
                 <div id="izinLeaderWarn" class="hidden glass-card p-8 rounded-2xl border-l-4 border-yellow-500 mb-6"><p class="text-yellow-400 font-bold text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Leader tidak diizinkan mengisi jam keluar.</p></div>
                 <div id="izinFormArea" class="glass-card p-8 rounded-2xl max-w-3xl">
                     <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-right-from-bracket text-sky-400"></i> Pilih Tujuan Izin</h3>
+                    <div id="izinWarnBox" class="hidden bg-red-900/30 border border-red-500/50 p-4 rounded-xl mb-6 text-sm text-red-300 flex items-center gap-3"><i class="fa-solid fa-ban text-xl"></i> <span id="izinWarnText">Tidak dapat izin keluar</span></div>
                     <div class="bg-slate-800 p-4 rounded-xl mb-6 border border-slate-700 text-sm text-slate-300">
                         <i class="fa-solid fa-info-circle text-sky-400 mr-2"></i> Sisa izin keluar hari ini: <span id="sisaIzinHariIni" class="font-bold text-sky-400">4</span>/4
                     </div>
@@ -228,38 +229,38 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, updateDoc, onSnapshot, query, where, deleteDoc, getDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, updateDoc, onSnapshot, query, where, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBAxo25KJy_XTIZBGYOh_XMTcn0w73yiYM", authDomain: "izinstaf-82315.firebaseapp.com", projectId: "izinstaf-82315", storageBucket: "izinstaf-82315.firebasestorage.app", messagingSenderId: "984406077560", appId: "1:984406077560:web:79501d7cd9d86062983d8d"
         };
 
-        const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig); 
+        const auth = getAuth(app); 
+        const db = getFirestore(app);
         const LEADER_EMAILS = ["hendrysalim260@gmail.com", "haris789smb@gmail.com"];
+        
         let currentUserData = null, currentUserId = null, unsubscribePermits = null, countdownInterval = null;
         
-        // Audio Alert System
+        // Audio
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playAlertSound() { try { const o = audioCtx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(500, audioCtx.currentTime); o.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.3); } catch(e){} }
         function playWarningSound() { try { const o = audioCtx.createOscillator(); o.type = 'square'; o.frequency.setValueAtTime(150, audioCtx.currentTime); o.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.5); } catch(e){} }
 
         function showWarningModal(msg) { playWarningSound(); document.getElementById('warningText').innerText = msg; document.getElementById('warningModal').classList.remove('hidden'); }
         window.closeWarningModal = () => document.getElementById('warningModal').classList.add('hidden');
 
-        window.showToast = (msg, type='info') => { const c=document.getElementById('toastContainer'); const colors={success:'bg-green-600',error:'bg-red-600',info:'bg-sky-600',warning:'bg-yellow-600'}; const icons={success:'fa-check-circle',error:'fa-times-circle',info:'fa-info-circle',warning:'fa-exclamation-triangle'}; const t=document.createElement('div'); t.className=`toast ${colors[type]} border-l-4 p-4 rounded-lg shadow-xl flex items-start gap-3 text-white`; t.innerHTML=`<i class="fa-solid ${icons[type]} text-lg mt-0.5"></i><span class="text-sm font-medium">${msg}</span>`; c.appendChild(t); if(type==='error'||type==='warning')playAlertSound(); setTimeout(()=>{if(t.parentNode)t.parentNode.removeChild(t);},4000); };
-        window.showLoading = () => document.getElementById('loadingOverlay').classList.remove('hidden');
-        window.hideLoading = () => document.getElementById('loadingOverlay').classList.add('hidden');
+        window.showToast = (msg, type='info') => { const c=document.getElementById('toastContainer'); const colors={success:'bg-green-600',error:'bg-red-600',info:'bg-sky-600',warning:'bg-yellow-600'}; const icons={success:'fa-check-circle',error:'fa-times-circle',info:'fa-info-circle',warning:'fa-exclamation-triangle'}; const t=document.createElement('div'); t.className=`toast ${colors[type]} border-l-4 p-4 rounded-lg shadow-xl flex items-start gap-3 text-white`; t.innerHTML=`<i class="fa-solid ${icons[type]} text-lg mt-0.5"></i><span class="text-sm font-medium">${msg}</span>`; c.appendChild(t); setTimeout(()=>{if(t.parentNode)t.parentNode.removeChild(t);},4000); };
         
-        setInterval(() => { 
-            const now = new Date();
-            const el=document.getElementById('liveClock'); if(el) el.innerText=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); 
-            const dl=document.getElementById('liveDate'); if(dl) dl.innerText=now.toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-        }, 1000);
+        function getToday() { return new Date().toISOString().split('T')[0]; }
 
+        // Global Function Bindings for HTML onclick
         window.showRegister = () => { document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.remove('hidden'); };
         window.showLogin = () => { document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loginSection').classList.remove('hidden'); };
+        
         window.login = async () => { const e=document.getElementById('loginEmail').value.trim(),p=document.getElementById('loginPassword').value,err=document.getElementById('loginError'),b=document.getElementById('btnLogin'); err.classList.add('hidden'); if(!e||!p){err.textContent="Isi email & password!";err.classList.remove('hidden');return;} b.disabled=true; try{await signInWithEmailAndPassword(auth,e,p);showToast("Login berhasil!","success");}catch(e){let m=e.message;if(e.code==='auth/invalid-credential')m="Email atau password salah!";err.textContent=m;err.classList.remove('hidden');showToast(m,"error");}finally{b.disabled=false;} };
-        window.register = async () => { const e=document.getElementById('regEmail').value.trim().toLowerCase(),p=document.getElementById('regPassword').value,err=document.getElementById('regError'),b=document.getElementById('btnRegister'); err.classList.add('hidden'); if(p.length<6){err.textContent="Min 6 karakter!";err.classList.remove('hidden');return;} b.disabled=true; showLoading(); try{ const invQ=query(collection(db,"invitations"),where("email","==",e)); const invSnap=await getDocs(invQ); let isL=LEADER_EMAILS.includes(e),invD=null; if(!invSnap.empty){invD=invSnap.docs[0].data();invD.id=invSnap.docs[0].id;}else if(!isL){err.textContent="Gmail belum didaftarkan Leader!";err.classList.remove('hidden');hideLoading();b.disabled=false;return;} const uc=await createUserWithEmailAndPassword(auth,e,p); let ud={email:e,nama:isL?"LEADER":invD.nama,role:isL?"LEADER":invD.role,shift:"Pagi",status:"online"}; await setDoc(doc(db,"users",uc.user.uid),ud); if(invD)await deleteDoc(doc(db,"invitations",invD.id)); showToast("Registrasi berhasil!","success"); }catch(e){err.textContent=e.message;err.classList.remove('hidden');showToast(e.message,"error");}finally{hideLoading();b.disabled=false;} };
+        
+        window.register = async () => { const e=document.getElementById('regEmail').value.trim().toLowerCase(),p=document.getElementById('regPassword').value,err=document.getElementById('regError'),b=document.getElementById('btnRegister'); err.classList.add('hidden'); if(p.length<6){err.textContent="Min 6 karakter!";err.classList.remove('hidden');return;} b.disabled=true; try{ const invQ=query(collection(db,"invitations"),where("email","==",e)); const invSnap=await getDocs(invQ); let isL=LEADER_EMAILS.includes(e),invD=null; if(!invSnap.empty){invD=invSnap.docs[0].data();invD.id=invSnap.docs[0].id;}else if(!isL){err.textContent="Gmail belum didaftarkan Leader!";err.classList.remove('hidden');b.disabled=false;return;} const uc=await createUserWithEmailAndPassword(auth,e,p); let ud={email:e,nama:isL?"LEADER":invD.nama,role:isL?"LEADER":invD.role,shift:"Pagi",status:"online"}; await setDoc(doc(db,"users",uc.user.uid),ud); if(invD)await deleteDoc(doc(db,"invitations",invD.id)); showToast("Registrasi berhasil!","success"); }catch(e){err.textContent=e.message;err.classList.remove('hidden');showToast(e.message,"error");}finally{b.disabled=false;} };
+        
         window.logout = async () => { try{ if(currentUserId) await updateDoc(doc(db,"users",currentUserId),{status:"offline"}); await signOut(auth); }catch(e){showToast(e.message,"error");} };
         window.changePassModal=()=>document.getElementById('passModal').classList.remove('hidden');
         window.closePassModal=()=>document.getElementById('passModal').classList.add('hidden');
@@ -293,29 +294,31 @@
         // ABSENSI
         window.absenMasuk=async()=>{try{const t=getToday();await setDoc(doc(db,"absensi",currentUserId+"_"+t),{userId:currentUserId,nama:currentUserData.nama,role:currentUserData.role,tanggal:t,jamMasuk:new Date().toLocaleTimeString('id-ID'),jamPulang:null,status:"Hadir"});showToast("Berhasil absen masuk!","success");checkAbsen();}catch(e){showToast(e.message,"error");}};
         window.absenPulang=async()=>{try{const t=getToday(),ref=doc(db,"absensi",currentUserId+"_"+t);const s=await getDoc(ref);if(s.exists()){await updateDoc(ref,{jamPulang:new Date().toLocaleTimeString('id-ID')});showToast("Berhasil absen pulang!","success");checkAbsen();}else{showWarningModal("Staff belum absen masuk!");}}catch(e){showToast(e.message,"error");}};
+        
         async function checkAbsen(){try{const t=getToday(),s=await getDoc(doc(db,"absensi",currentUserId+"_"+t)),bm=document.getElementById('btnMasuk'),bp=document.getElementById('btnPulang'),st=document.getElementById('absenStatus');if(s.exists()){const d=s.data();bm.disabled=true;bm.classList.add('opacity-50');if(d.jamPulang){bp.disabled=true;bp.classList.add('opacity-50');st.innerHTML=`<i class="fa-solid fa-check-double text-green-400 mr-2"></i> Selesai (Masuk: ${d.jamMasuk} | Pulang: ${d.jamPulang})`;}else{bp.disabled=false;bp.classList.remove('opacity-50');st.innerHTML=`<i class="fa-solid fa-check-circle text-sky-400 mr-2"></i> Sedang Bekerja (Masuk: ${d.jamMasuk})`;}}else{bm.disabled=false;bm.classList.remove('opacity-50');bp.disabled=true;bp.classList.add('opacity-50');st.innerHTML='<i class="fa-solid fa-clock text-slate-400 mr-2"></i> Belum absen hari ini';}}catch(e){}}
-
-        function getToday() { return new Date().toISOString().split('T')[0]; }
 
         // VALIDASI IZIN KELUAR
         async function checkIzinEligibility() {
             if(currentUserData.role === 'LEADER') return;
-            const btn1 = document.getElementById('btnIzinMerokok'), btn2 = document.getElementById('btnIzinNonRokok'), sisaEl = document.getElementById('sisaIzinHariIni');
-            btn1.disabled = true; btn2.disabled = true; // Default lock
+            const btn1 = document.getElementById('btnIzinMerokok'), btn2 = document.getElementById('btnIzinNonRokok'), sisaEl = document.getElementById('sisaIzinHariIni'), warnBox = document.getElementById('izinWarnBox'), warnText = document.getElementById('izinWarnText');
+            btn1.disabled = true; btn2.disabled = true; warnBox.classList.add('hidden');
 
             try {
                 const t = getToday();
                 // 1. Cek Absensi
                 const absenSnap = await getDoc(doc(db, "absensi", currentUserId+"_"+t));
-                if(!absenSnap.exists() || absenSnap.data().jamPulang !== null) {
-                    sisaEl.innerText = "0"; return;
+                if(!absenSnap.exists() || !absenSnap.data().jamMasuk) {
+                    warnText.innerText = "Staff belum absen masuk!"; warnBox.classList.remove('hidden'); sisaEl.innerText = "0"; return;
+                }
+                if(absenSnap.data().jamPulang) {
+                    warnText.innerText = "Staff sudah absen pulang!"; warnBox.classList.remove('hidden'); sisaEl.innerText = "0"; return;
                 }
 
                 // 2. Cek Izin Aktif
                 const aktifQ = query(collection(db, "permits"), where("userId", "==", currentUserId), where("status", "==", "aktif"));
                 const aktifSnap = await getDocs(aktifQ);
                 if(!aktifSnap.empty) {
-                    sisaEl.innerText = "0"; return;
+                    warnText.innerText = "Staff masih dalam status izin keluar!"; warnBox.classList.remove('hidden'); sisaEl.innerText = "0"; return;
                 }
 
                 // 3. Cek Batas 4x Izin
@@ -325,7 +328,9 @@
                 const sisa = 4 - izinCount;
                 sisaEl.innerText = sisa;
 
-                if(sisa <= 0) return;
+                if(sisa <= 0) {
+                    warnText.innerText = "Batas izin keluar hari ini telah tercapai (4x)!"; warnBox.classList.remove('hidden'); return;
+                }
 
                 // 4. Cek Shift Aktif
                 const hour = new Date().getHours();
@@ -333,7 +338,9 @@
                 if(currentUserData.shift === 'Pagi' && hour >= 8 && hour < 16) shiftAktif = true;
                 if(currentUserData.shift === 'Sore' && hour >= 16 && hour < 23) shiftAktif = true;
                 if(currentUserData.shift === 'Malam' && (hour >= 23 || hour < 8)) shiftAktif = true;
-                if(!shiftAktif) return;
+                if(!shiftAktif) {
+                    warnText.innerText = "Izin hanya bisa diajukan pada shift kerja Anda!"; warnBox.classList.remove('hidden'); return;
+                }
 
                 // 5. Cek Minimal Staf Aktif (Kasir >= 3, CS >= 2)
                 const usersSnap = await getDocs(collection(db, "users"));
@@ -351,24 +358,29 @@
 
                 const activeKasir = totalKasir - outKasir;
                 const activeCS = totalCS - outCS;
-                const minKasirReq = Math.min(3, totalKasir); // Fallback jika total staf kurang dari requirement
+                // Fallback jika total staf kurang dari requirement
+                const minKasirReq = Math.min(3, totalKasir); 
                 const minCSReq = Math.min(2, totalCS);
 
-                if(currentUserData.role === 'KASIR' && activeKasir <= minKasirReq) return;
-                if((currentUserData.role === 'CS LINE' || currentUserData.role === 'CS LiveChat') && activeCS <= minCSReq) return;
+                if(currentUserData.role === 'KASIR' && activeKasir <= minKasirReq) {
+                    warnText.innerText = `Minimal ${minKasirReq} staff kasir harus tetap aktif! (Sisa: ${activeKasir})`; warnBox.classList.remove('hidden'); return;
+                }
+                if((currentUserData.role === 'CS LINE' || currentUserData.role === 'CS LiveChat') && activeCS <= minCSReq) {
+                    warnText.innerText = `Minimal ${minCSReq} staff CS harus tetap aktif! (Sisa: ${activeCS})`; warnBox.classList.remove('hidden'); return;
+                }
 
                 // Jika semua validasi lolos
                 btn1.disabled = false; btn2.disabled = false;
 
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error("Izin Eligibility Error", e); }
         }
 
         window.ajukanIzin=async(tipe)=>{
             try {
                 const t = getToday();
-                // Double check validation
                 const absenSnap = await getDoc(doc(db, "absensi", currentUserId+"_"+t));
-                if(!absenSnap.exists() || absenSnap.data().jamPulang !== null) return showWarningModal("Staff belum absen masuk atau sudah absen pulang!");
+                if(!absenSnap.exists() || !absenSnap.data().jamMasuk) return showWarningModal("Staff belum absen masuk!");
+                if(absenSnap.data().jamPulang) return showWarningModal("Staff sudah absen pulang!");
 
                 const aktifQ = query(collection(db, "permits"), where("userId", "==", currentUserId), where("status", "==", "aktif"));
                 if(!(await getDocs(aktifQ)).empty) return showWarningModal("Staff masih dalam status izin keluar!");
@@ -376,7 +388,6 @@
                 const hariIniQ = query(collection(db, "permits"), where("userId", "==", currentUserId), where("tanggal", "==", t));
                 if((await getDocs(hariIniQ)).size >= 4) return showWarningModal("Batas izin keluar hari ini telah tercapai (4x)!");
 
-                // Cek Min Staff
                 const usersSnap = await getDocs(collection(db, "users"));
                 const permitsSnap = await getDocs(query(collection(db, "permits"), where("tanggal", "==", t), where("status", "==", "aktif")));
                 let totalKasir=0, outKasir=0, totalCS=0, outCS=0; const outIds=[];
@@ -389,34 +400,56 @@
                 const d=tipe==='merokok'?20:15, s=new Date(), e=new Date(s.getTime()+d*60000);
                 await addDoc(collection(db,"permits"),{userId:currentUserId,nama:currentUserData.nama,role:currentUserData.role,tipe,durasi:d,jamKeluar:s.toLocaleTimeString('id-ID'),batasKembali:e.toLocaleTimeString('id-ID'),endTimeStamp:e,status:"aktif",tanggal:t});
                 showToast("Izin diajukan!","success");
-                checkIzinEligibility(); // Refresh state
+                checkIzinEligibility(); 
             } catch(e) { showToast(e.message,"error"); }
         };
 
         window.kembaliIzin=async(id)=>{try{await updateDoc(doc(db,"permits",id),{status:'kembali'});showToast("Kembali dicatat.","success");}catch(e){showToast(e.message,"error");}};
 
-        function listenPermits(){if(unsubscribePermits)unsubscribePermits();const t=getToday();unsubscribePermits=onSnapshot(query(collection(db,"permits"),where("tanggal","==",t)),(snap)=>{let h='',monH='';const n=new Date();let sI=0,sT=0,sL=0;snap.forEach(d=>{const p=d.data();let sH='';if(p.status==='aktif'){if(n>p.endTimeStamp.toDate()){updateDoc(doc(db,"permits",d.id),{status:'lewat'}).catch(e=>{});sH=`<span class="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs font-bold border border-red-500/30 animate-pulse">LEWAT</span>`;sT++;}else{sH=`<span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded text-xs font-bold border border-sky-500/30">Keluar</span>`;sI++;monH+=`<div class="bg-slate-800 p-3 rounded-lg flex justify-between items-center border border-slate-700"><span class="font-medium text-white">${p.nama} (${p.tipe==='merokok'?'🚬':'☕'})</span><span id="countdown-${d.id}" class="text-sky-400 font-mono font-bold"></span></div>`;}}else if(p.status==='lewat'){sH=`<span class="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs font-bold border border-red-500/30">LEWAT</span>`;sT++;monH+=`<div class="bg-red-900/20 p-3 rounded-lg flex justify-between items-center border border-red-500/30 neon-border-red"><span class="font-medium text-red-300">${p.nama} (TERLAMBAT)</span><button onclick="kembaliIzin('${d.id}')" class="bg-red-600 px-3 py-1 rounded text-xs font-bold text-white">Kembalikan</button></div>`;}else{sH=`<span class="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-bold border border-green-500/30">Kembali</span>`;}
-        h+=`<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="p-4 font-medium">${p.nama}</td><td class="p-4">${p.role}</td><td class="p-4">${p.tipe==='merokok'?'🚬':'☕'}</td><td class="p-4">${p.jamKeluar}</td><td class="p-4">${p.batasKembali}</td><td class="p-4 flex gap-2">${sH} ${p.status!=='kembali'&&p.userId===currentUserId?`<button onclick="kembaliIzin('${d.id}')" class="bg-green-600 px-2 py-1 rounded text-xs font-bold text-white">Kembali</button>`:''}</td></tr>`;});document.getElementById('monitoringList').innerHTML=monH||'<p class="text-slate-500 text-sm text-center">Aman</p>';document.getElementById('statIzin').innerText=sI;document.getElementById('statTerlambat').innerText=sT;updateSelfStatus();startCountdowns(snap);},(e)=>showToast(e.message,"error"));}
+        function listenPermits(){if(unsubscribePermits)unsubscribePermits();const t=getToday();unsubscribePermits=onSnapshot(query(collection(db,"permits"),where("tanggal","==",t)),(snap)=>{let h='',monH='';const n=new Date();let sI=0,sT=0,sL=0;
+        // Auto reset midnight check (force close if date passed)
+        snap.forEach(d => { const p=d.data(); if(p.status==='aktif' && n > p.endTimeStamp.toDate()){ updateDoc(doc(db,"permits",d.id),{status:'lewat'}).catch(e=>{}); } });
+
+        const hariIniQ = snap.docs.filter(d => d.data().userId === currentUserId);
+        if(hariIniQ.length >= 4) sL++;
+
+        snap.forEach(d=>{const p=d.data();let sH='';if(p.status==='aktif'){sH=`<span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded text-xs font-bold border border-sky-500/30">Keluar</span>`;sI++;monH+=`<div class="bg-slate-800 p-3 rounded-lg flex justify-between items-center border border-slate-700"><span class="font-medium text-white">${p.nama} (${p.tipe==='merokok'?'🚬':'☕'})</span><span id="countdown-${d.id}" class="text-sky-400 font-mono font-bold"></span></div>`;}else if(p.status==='lewat'){sH=`<span class="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs font-bold border border-red-500/30 animate-pulse">LEWAT</span>`;sT++;monH+=`<div class="bg-red-900/20 p-3 rounded-lg flex justify-between items-center border border-red-500/30 neon-border-red"><span class="font-medium text-red-300">${p.nama} (TERLAMBAT)</span><button onclick="kembaliIzin('${d.id}')" class="bg-red-600 px-3 py-1 rounded text-xs font-bold text-white">Kembalikan</button></div>`;}else{sH=`<span class="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-bold border border-green-500/30">Kembali</span>`;}
+        h+=`<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="p-4 font-medium">${p.nama}</td><td class="p-4">${p.role}</td><td class="p-4">${p.tipe==='merokok'?'🚬':'☕'}</td><td class="p-4">${p.jamKeluar}</td><td class="p-4">${p.batasKembali}</td><td class="p-4 flex gap-2">${sH} ${p.status!=='kembali'&&p.userId===currentUserId?`<button onclick="kembaliIzin('${d.id}')" class="bg-green-600 px-2 py-1 rounded text-xs font-bold text-white">Kembali</button>`:''}</td></tr>`;});document.getElementById('monitoringList').innerHTML=monH||'<p class="text-slate-500 text-sm text-center">Aman</p>';document.getElementById('statIzin').innerText=sI;document.getElementById('statTerlambat').innerText=sT;document.getElementById('statLimit').innerText=sL;updateSelfStatus();startCountdowns(snap);},(e)=>showToast(e.message,"error"));}
 
         function startCountdowns(snap){if(countdownInterval)clearInterval(countdownInterval);countdownInterval=setInterval(()=>{const n=new Date();snap.forEach(d=>{const p=d.data();if(p.status==='aktif'){const el=document.getElementById('countdown-'+d.id);if(el){const diff=p.endTimeStamp.toDate()-n;if(diff>0){const m=Math.floor(diff/60000);const s=Math.floor((diff%60000)/1000);el.innerText=`${m}m ${s}s`;}else{el.innerText="WAKTU HABIS!";el.classList.add('text-red-400');}}}});},1000);}
 
         async function updateSelfStatus(){if(!currentUserId)return;try{const s=await getDocs(query(collection(db,"permits"),where("userId","==",currentUserId),where("status","==","aktif")));const el=document.getElementById('izinActiveStatus');if(!s.empty){const p=s.docs[0].data();el.classList.remove('hidden');el.innerHTML=`<div class="text-sky-400 font-bold text-lg mb-2"><i class="fa-solid fa-clock mr-2"></i> Sedang Izin Keluar</div><p class="text-slate-300 mb-4">Batas: <span class="text-white font-bold text-lg">${p.batasKembali}</span> | Sisa: <span id="self-countdown" class="text-yellow-400 font-bold font-mono text-lg"></span></p><button onclick="kembaliIzin('${s.docs[0].id}')" class="bg-green-600 hover:bg-green-500 px-8 py-3 rounded-xl font-bold text-white text-lg neon-border-sky"><i class="fa-solid fa-right-to-bracket mr-2"></i> Kembali</button>`;const cid=setInterval(()=>{const n=new Date(),diff=p.endTimeStamp.toDate()-n;const sc=document.getElementById('self-countdown');if(sc){if(diff>0){sc.innerText=`${Math.floor(diff/60000)}m ${Math.floor((diff%60000)/1000)}s`;}else{sc.innerText="WAKTU HABIS!";sc.className="text-red-400 font-bold font-mono text-lg";clearInterval(cid);}}},1000);}else{el.classList.add('hidden');}}catch(e){}}
 
-        async function loadDashboardStats(){try{const usersSnap=await getDocs(collection(db,"users"));const permitsSnap=await getDocs(query(collection(db,"permits"),where("tanggal","==",getToday()),where("status","==","aktif")));let tK=0,aK=0,tC=0,aC=0,sL=0;const outIds=[];permitsSnap.forEach(d=>outIds.push(d.data().userId));const allPermitsSnap=await getDocs(query(collection(db,"permits"),where("tanggal","==",getToday())));const limitCount={};allPermitsSnap.forEach(d=>{const p=d.data();limitCount[p.userId]=(limitCount[p.userId]||0)+1;});usersSnap.forEach(d=>{const u=d.data();const isOut=outIds.includes(d.id);if(u.role==='KASIR'){tK++;if(!isOut)aK++;}if(u.role==='CS LINE'||u.role==='CS LiveChat'){tC++;if(!isOut)aC++;}if(limitCount[d.id]>=4)sL++;});document.getElementById('statKasir').innerText=`${aK}/${tK}`;document.getElementById('statCS').innerText=`${aC}/${tC}`;document.getElementById('statLimit').innerText=sL;checkIzinEligibility();}catch(e){}}
+        async function loadDashboardStats(){try{const usersSnap=await getDocs(collection(db,"users"));const permitsSnap=await getDocs(query(collection(db,"permits"),where("tanggal","==",getToday()),where("status","==","aktif")));let tK=0,aK=0,tC=0,aC=0;const outIds=[];permitsSnap.forEach(d=>outIds.push(d.data().userId));usersSnap.forEach(d=>{const u=d.data();const isOut=outIds.includes(d.id);if(u.role==='KASIR'){tK++;if(!isOut)aK++;}if(u.role==='CS LINE'||u.role==='CS LiveChat'){tC++;if(!isOut)aC++;}});document.getElementById('statKasir').innerText=`${aK}/${tK}`;document.getElementById('statCS').innerText=`${aC}/${tC}`;checkIzinEligibility();}catch(e){}}
 
         // JOBDESK
-        async function loadJobdesk(){const t=getToday();onSnapshot(query(collection(db,"jobdesk"),where("tanggal","==",t)),(snap)=>{let h='';snap.forEach(d=>{const j=d.data();const doneClass=j.status==='selesai'?'line-through text-slate-500':'text-white';h+=`<div class="bg-slate-800 p-4 rounded-lg flex justify-between items-center border border-slate-700"><div class="flex items-center gap-4"><button onclick="toggleJobdesk('${d.id}','${j.status}')" class="w-6 h-6 rounded-full border-2 ${j.status==='selesai'?'bg-green-500 border-green-500':'border-slate-500'} flex items-center justify-center"><i class="fa-solid fa-check text-xs text-white ${j.status==='selesai'?'':'hidden'}"></i></button><span class="${doneClass}">${j.task}</span></div><button onclick="deleteDoc(doc(db,'jobdesk','${d.id}'))" class="text-red-400 hover:text-red-300 text-sm"><i class="fa-solid fa-trash"></i></button></div>`;});document.getElementById('jobdeskList').innerHTML=h||'<p class="text-slate-500 text-sm text-center">Tidak ada jobdesk</p>';});}
+        async function loadJobdesk(){const t=getToday();onSnapshot(query(collection(db,"jobdesk"),where("tanggal","==",t)),(snap)=>{let h='';snap.forEach(d=>{const j=d.data();const doneClass=j.status==='selesai'?'line-through text-slate-500':'text-white';h+=`<div class="bg-slate-800 p-4 rounded-lg flex justify-between items-center border border-slate-700"><div class="flex items-center gap-4"><button onclick="toggleJobdesk('${d.id}','${j.status}')" class="w-6 h-6 rounded-full border-2 ${j.status==='selesai'?'bg-green-500 border-green-500':'border-slate-500'} flex items-center justify-center"><i class="fa-solid fa-check text-xs text-white ${j.status==='selesai'?'':'hidden'}"></i></button><span class="${doneClass}">${j.task}</span></div><button onclick="deleteJobdesk('${d.id}')" class="text-red-400 hover:text-red-300 text-sm"><i class="fa-solid fa-trash"></i></button></div>`;});document.getElementById('jobdeskList').innerHTML=h||'<p class="text-slate-500 text-sm text-center">Tidak ada jobdesk</p>';});}
         window.addNewJobdesk=async()=>{const t=document.getElementById('addJobdesk').value.trim();if(!t)return;try{await addDoc(collection(db,"jobdesk"),{task:t,status:"belum",tanggal:getToday()});document.getElementById('addJobdesk').value='';showToast("Jobdesk ditambahkan!","success");}catch(e){showToast(e.message,"error");}};
         window.toggleJobdesk=async(id,status)=>{try{await updateDoc(doc(db,"jobdesk",id),{status:status==='selesai'?'belum':'selesai'});}catch(e){showToast(e.message,"error");}};
+        window.deleteJobdesk=async(id)=>{try{await deleteDoc(doc(db,"jobdesk",id));showToast("Dihapus","success");}catch(e){showToast(e.message,"error");}};
 
         // RIWAYAT
-        window.loadHistory=async(filter)=>{try{let qRef=query(collection(db,"permits"),orderBy("tanggal","desc"));const now=new Date();if(filter==='today'){qRef=query(qRef,where("tanggal","==",getToday()));}else if(filter==='yesterday'){const d=new Date(now.setDate(now.getDate()-1)).toISOString().split('T')[0];qRef=query(qRef,where("tanggal","==",d));}else if(filter==='week'){const d=new Date();d.setDate(d.getDate()-7);qRef=query(qRef,where("tanggal",">=",d.toISOString().split('T')[0]));}else if(filter==='month'){const d=new Date();d.setMonth(d.getMonth()-1);qRef=query(qRef,where("tanggal",">=",d.toISOString().split('T')[0]));}
-        const snap=await getDocs(qRef);let h='';snap.forEach(d=>{const p=d.data();const sC=p.status==='lewat'?'text-red-400':p.status==='aktif'?'text-sky-400':'text-green-400';h+=`<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="p-4 font-medium">${p.nama}</td><td class="p-4">${p.role}</td><td class="p-4">${p.tipe==='merokok'?'🚬':'☕'}</td><td class="p-4">${p.jamKeluar}</td><td class="p-4">${p.batasKembali}</td><td class="p-4 font-bold ${sC}">${p.status.toUpperCase()}</td></tr>`;});document.getElementById('riwayatBody').innerHTML=h||'<tr><td colspan="6" class="text-center p-8 text-slate-500">Tidak ada data</td></tr>';}catch(e){showToast("Gagal memuat riwayat: "+e.message,"error");}};
+        window.loadHistory=async(filter)=>{try{let qRef=collection(db,"permits");const now=new Date();let constraints=[where("tanggal","<=",getToday())];if(filter==='today'){constraints.push(where("tanggal","==",getToday()));}else if(filter==='yesterday'){const d=new Date(now.setDate(now.getDate()-1)).toISOString().split('T')[0];constraints=[where("tanggal","==",d)];}else if(filter==='week'){const d=new Date();d.setDate(d.getDate()-7);constraints.push(where("tanggal",">=",d.toISOString().split('T')[0]));}else if(filter==='month'){const d=new Date();d.setMonth(d.getMonth()-1);constraints.push(where("tanggal",">=",d.toISOString().split('T')[0]));}
+        const snap=await getDocs(query(qRef,...constraints));let h='';snap.forEach(d=>{const p=d.data();const sC=p.status==='lewat'?'text-red-400':p.status==='aktif'?'text-sky-400':'text-green-400';h+=`<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="p-4 font-medium">${p.nama}</td><td class="p-4">${p.role}</td><td class="p-4">${p.tipe==='merokok'?'🚬':'☕'}</td><td class="p-4">${p.jamKeluar}</td><td class="p-4">${p.batasKembali}</td><td class="p-4 font-bold ${sC}">${p.status.toUpperCase()}</td></tr>`;});document.getElementById('riwayatBody').innerHTML=h||'<tr><td colspan="6" class="text-center p-8 text-slate-500">Tidak ada data</td></tr>';}catch(e){showToast("Gagal memuat riwayat: "+e.message,"error");}};
 
-        // KELOLA STAF
+        // KELOLA STAF ( FIXED DELETE )
         window.tambahStaf=async()=>{const n=document.getElementById('addNama').value.trim(),e=document.getElementById('addEmail').value.trim().toLowerCase(),r=document.getElementById('addRole').value;if(!n||!e)return showToast("Isi data!","warning");try{await addDoc(collection(db,"invitations"),{nama:n,email:e,role:r});showToast("Undangan dikirim!","success");document.getElementById('addNama').value='';document.getElementById('addEmail').value='';loadStafList();}catch(e){showToast(e.message,"error");}};
-        async function loadStafList(){if(currentUserData.role!=='LEADER')return;try{const uS=await getDocs(collection(db,"users")),iS=await getDocs(collection(db,"invitations"));let h='',hs='';uS.forEach(d=>{const u=d.data();if(u.role==='LEADER')return;h+=`<tr class="border-b border-slate-800"><td class="p-4">${u.nama}</td><td class="p-4 text-slate-400">${u.email}</td><td class="p-4">${u.role}</td><td class="p-4">${u.shift}</td><td class="p-4"><button onclick="deleteDoc(doc(db,'users','${d.id}'))" class="text-red-400 hover:text-red-300 text-sm"><i class="fa-solid fa-trash"></i></button></td></tr>`;hs+=`<option value="${d.id}">${u.nama} (${u.shift})</option>`;});iS.forEach(d=>{const u=d.data();h+=`<tr class="border-b border-slate-800 bg-yellow-900/10"><td class="p-4 text-yellow-300">${u.nama}</td><td class="p-4">${u.email}</td><td class="p-4">${u.role}</td><td class="p-4 italic">-</td><td class="p-4"><button onclick="deleteDoc(doc(db,'invitations','${d.id}'))" class="text-red-400 text-sm"><i class="fa-solid fa-trash"></i></button></td></tr>`;});document.getElementById('stafTableBody').innerHTML=h;document.getElementById('shiftStafSelect').innerHTML=hs;}catch(e){showToast(e.message,"error");}}
+        
+        async function loadStafList(){if(currentUserData.role!=='LEADER')return;try{const uS=await getDocs(collection(db,"users")),iS=await getDocs(collection(db,"invitations"));let h='',hs='';uS.forEach(d=>{const u=d.data();if(u.role==='LEADER')return;h+=`<tr class="border-b border-slate-800"><td class="p-4">${u.nama}</td><td class="p-4 text-slate-400">${u.email}</td><td class="p-4">${u.role}</td><td class="p-4">${u.shift}</td><td class="p-4"><button onclick="deleteStaff('${d.id}')" class="text-red-400 hover:text-red-300 text-sm"><i class="fa-solid fa-trash"></i></button></td></tr>`;hs+=`<option value="${d.id}">${u.nama} (${u.shift})</option>`;});iS.forEach(d=>{const u=d.data();h+=`<tr class="border-b border-slate-800 bg-yellow-900/10"><td class="p-4 text-yellow-300">${u.nama}</td><td class="p-4">${u.email}</td><td class="p-4">${u.role}</td><td class="p-4 italic">-</td><td class="p-4"><button onclick="deleteInvitation('${d.id}')" class="text-red-400 text-sm"><i class="fa-solid fa-trash"></i></button></td></tr>`;});document.getElementById('stafTableBody').innerHTML=h;document.getElementById('shiftStafSelect').innerHTML=hs;}catch(e){showToast(e.message,"error");}}
+        
         window.updateShift=async()=>{const id=document.getElementById('shiftStafSelect').value,s=document.getElementById('shiftTypeSelect').value;if(!id)return;try{await updateDoc(doc(db,"users",id),{shift:s});showToast("Shift diubah!","success");loadStafList();}catch(e){showToast(e.message,"error");}};
+        
+        // Fixed Delete Functions (Global Scope)
+        window.deleteStaff = async (id) => {
+            if(confirm("Hapus staf ini dari database?")) {
+                try { await deleteDoc(doc(db, "users", id)); showToast("Staf berhasil dihapus!", "success"); loadStafList(); } catch(e) { showToast("Gagal hapus: "+e.message, "error"); }
+            }
+        };
+        window.deleteInvitation = async (id) => {
+            if(confirm("Batalkan undangan ini?")) {
+                try { await deleteDoc(doc(db, "invitations", id)); showToast("Undangan dibatalkan!", "success"); loadStafList(); } catch(e) { showToast("Gagal hapus: "+e.message, "error"); }
+            }
+        };
 
     </script>
 </body>
