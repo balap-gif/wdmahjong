@@ -79,6 +79,7 @@
                     <button onclick="showTab('izin')" id="btn-izin" class="sidebar-btn text-left p-3.5 rounded-lg hover:bg-slate-800/50 flex items-center gap-3 font-medium"><i class="fa-solid fa-right-from-bracket w-6 text-center"></i> Izin Keluar</button>
                     <button onclick="showTab('shift')" id="btn-shift" class="sidebar-btn text-left p-3.5 rounded-lg hover:bg-slate-800/50 flex items-center gap-3 font-medium"><i class="fa-solid fa-calendar-days w-6 text-center"></i> Shift</button>
                     <button onclick="showTab('jobdesk')" id="btn-jobdesk" class="sidebar-btn text-left p-3.5 rounded-lg hover:bg-slate-800/50 flex items-center gap-3 font-medium"><i class="fa-solid fa-list-check w-6 text-center"></i> Jobdesk</button>
+                    <button onclick="showTab('pengumuman')" id="btn-pengumuman" class="sidebar-btn text-left p-3.5 rounded-lg hover:bg-slate-800/50 flex items-center gap-3 font-medium"><i class="fa-solid fa-bullhorn w-6 text-center"></i> Pengumuman</button>
                     <button onclick="showTab('riwayat')" id="btn-riwayat" class="sidebar-btn text-left p-3.5 rounded-lg hover:bg-slate-800/50 flex items-center gap-3 font-medium"><i class="fa-solid fa-clock-rotate-left w-6 text-center"></i> Riwayat</button>
                     <div id="menuLeader" class="hidden">
                         <div class="border-t border-slate-700/50 my-3"></div>
@@ -110,6 +111,10 @@
 
             <!-- HOME -->
             <div id="tab-home" class="tab-content fade-in">
+                <div id="announcementBanner" class="hidden glass-card p-4 rounded-xl mb-6 flex items-center gap-4 border-l-4 border-yellow-500 bg-yellow-900/20">
+                    <i class="fa-solid fa-bullhorn text-yellow-400 text-2xl"></i>
+                    <div><p class="text-xs text-yellow-400 font-bold">PENGUMUMAN TERBARU</p><p id="announceText" class="text-white text-sm font-medium"></p></div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div class="glass-card p-5 rounded-xl border-l-4 border-green-500"><p class="text-slate-400 text-sm">Kasir Aktif (Min 3)</p><h3 id="statKasir" class="text-3xl font-bold text-green-400 mt-2">0</h3></div>
                     <div class="glass-card p-5 rounded-xl border-l-4 border-blue-500"><p class="text-slate-400 text-sm">CS Aktif (Min 2)</p><h3 id="statCS" class="text-3xl font-bold text-blue-400 mt-2">0</h3></div>
@@ -186,6 +191,18 @@
                 </div>
             </div>
 
+            <!-- PENGUMUMAN -->
+            <div id="tab-pengumuman" class="tab-content hidden fade-in">
+                <div class="glass-card p-8 rounded-2xl border-t-4 border-yellow-500">
+                    <h3 class="text-xl font-bold mb-6 text-yellow-400 flex items-center gap-2"><i class="fa-solid fa-bullhorn"></i> Papan Pengumuman</h3>
+                    <div id="pengumumanForm" class="hidden mb-6">
+                        <textarea id="announceInput" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-white mb-3" rows="3" placeholder="Tulis pengumuman baru..."></textarea>
+                        <button onclick="postAnnouncement()" class="bg-yellow-600 hover:bg-yellow-500 px-6 py-2 rounded-lg font-bold text-white">Posting Pengumuman</button>
+                    </div>
+                    <div id="announceList" class="space-y-4"></div>
+                </div>
+            </div>
+
             <!-- RIWAYAT -->
             <div id="tab-riwayat" class="tab-content hidden fade-in">
                 <div class="glass-card p-8 rounded-2xl">
@@ -242,7 +259,6 @@
         
         let currentUserData = null, currentUserId = null, unsubscribePermits = null, countdownInterval = null;
         
-        // Audio
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playWarningSound() { try { const o = audioCtx.createOscillator(); o.type = 'square'; o.frequency.setValueAtTime(150, audioCtx.currentTime); o.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.5); } catch(e){} }
 
@@ -253,7 +269,6 @@
         
         function getToday() { return new Date().toISOString().split('T')[0]; }
 
-        // Global Function Bindings for HTML onclick
         window.showRegister = () => { document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.remove('hidden'); };
         window.showLogin = () => { document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loginSection').classList.remove('hidden'); };
         
@@ -274,7 +289,7 @@
                     if(snap.exists()){currentUserData=snap.data();}else{let isL=LEADER_EMAILS.includes(user.email);currentUserData={nama:isL?"LEADER":"Staf",email:user.email,role:isL?"LEADER":"Staf",shift:"Pagi"};await setDoc(ref,currentUserData);}
                     await updateDoc(ref,{status:"online"});
                     document.getElementById('sideName').innerText=currentUserData.nama; document.getElementById('sideEmail').innerText=currentUserData.email; document.getElementById('sideAvatar').innerText=currentUserData.nama.charAt(0); document.getElementById('sideRole').innerText=currentUserData.role;
-                    setupAccess(); checkAbsen(); listenPermits(); loadJobdesk(); loadStafList(); showTab('home');
+                    setupAccess(); checkAbsen(); listenPermits(); loadJobdesk(); loadStafList(); loadAnnouncements(); showTab('home');
                     window.addEventListener('beforeunload',()=>{if(currentUserId)updateDoc(doc(db,"users",currentUserId),{status:"offline"});});
                 }catch(e){showToast("Gagal memuat: "+e.message,"error");}
             } else {
@@ -284,12 +299,12 @@
 
         function setupAccess() {
             const r=currentUserData.role;
-            document.getElementById('menuLeader').classList.add('hidden'); document.getElementById('izinLeaderWarn').classList.add('hidden'); document.getElementById('izinFormArea').classList.remove('hidden'); document.getElementById('shiftManagerArea').classList.add('hidden'); document.getElementById('jobdeskManager').classList.add('hidden');
-            if(r==='LEADER'){document.getElementById('menuLeader').classList.remove('hidden');document.getElementById('izinLeaderWarn').classList.remove('hidden');document.getElementById('izinFormArea').classList.add('hidden');document.getElementById('shiftManagerArea').classList.remove('hidden');document.getElementById('jobdeskManager').classList.remove('hidden');}
-            else if(r==='CS LINE'){document.getElementById('shiftManagerArea').classList.remove('hidden');document.getElementById('jobdeskManager').classList.remove('hidden');}
+            document.getElementById('menuLeader').classList.add('hidden'); document.getElementById('izinLeaderWarn').classList.add('hidden'); document.getElementById('izinFormArea').classList.remove('hidden'); document.getElementById('shiftManagerArea').classList.add('hidden'); document.getElementById('jobdeskManager').classList.add('hidden'); document.getElementById('pengumumanForm').classList.add('hidden');
+            if(r==='LEADER'){document.getElementById('menuLeader').classList.remove('hidden');document.getElementById('izinLeaderWarn').classList.remove('hidden');document.getElementById('izinFormArea').classList.add('hidden');document.getElementById('shiftManagerArea').classList.remove('hidden');document.getElementById('jobdeskManager').classList.remove('hidden');document.getElementById('pengumumanForm').classList.remove('hidden');}
+            else if(r==='CS LINE'){document.getElementById('shiftManagerArea').classList.remove('hidden');document.getElementById('jobdeskManager').classList.remove('hidden');document.getElementById('pengumumanForm').classList.remove('hidden');}
         }
 
-        window.showTab = (tab) => { document.querySelectorAll('.tab-content').forEach(el=>el.classList.add('hidden')); document.querySelectorAll('.sidebar-btn').forEach(el=>el.classList.remove('active')); const tE=document.getElementById('tab-'+tab),bE=document.getElementById('btn-'+tab); if(tE)tE.classList.remove('hidden'); if(bE)bE.classList.add('active'); if(tab==='kelola')loadStafList(); if(tab==='home')loadDashboardStats(); if(tab==='izin')checkIzinEligibility(); };
+        window.showTab = (tab) => { document.querySelectorAll('.tab-content').forEach(el=>el.classList.add('hidden')); document.querySelectorAll('.sidebar-btn').forEach(el=>el.classList.remove('active')); const tE=document.getElementById('tab-'+tab),bE=document.getElementById('btn-'+tab); if(tE)tE.classList.remove('hidden'); if(bE)bE.classList.add('active'); if(tab==='kelola')loadStafList(); if(tab==='home')loadDashboardStats(); if(tab==='izin')checkIzinEligibility(); if(tab==='pengumuman')loadAnnouncements(); };
 
         // ABSENSI
         window.absenMasuk=async()=>{try{const t=getToday();await setDoc(doc(db,"absensi",currentUserId+"_"+t),{userId:currentUserId,nama:currentUserData.nama,role:currentUserData.role,tanggal:t,jamMasuk:new Date().toLocaleTimeString('id-ID'),jamPulang:null,status:"Hadir"});showToast("Berhasil absen masuk!","success");checkAbsen();}catch(e){showToast(e.message,"error");}};
@@ -305,47 +320,31 @@
 
             try {
                 const t = getToday();
-                // 1. Cek Absensi
                 const absenSnap = await getDoc(doc(db, "absensi", currentUserId+"_"+t));
-                if(!absenSnap.exists() || !absenSnap.data().jamMasuk) {
-                    warnText.innerText = "Staff belum absen masuk!"; warnBox.classList.remove('hidden'); sisaEl.innerText = "0"; return;
-                }
-                if(absenSnap.data().jamPulang) {
-                    warnText.innerText = "Staff sudah absen pulang!"; warnBox.classList.remove('hidden'); sisaEl.innerText = "0"; return;
-                }
+                if(!absenSnap.exists() || !absenSnap.data().jamMasuk) { warnText.innerText = "Staff belum absen masuk!"; warnBox.classList.remove('hidden'); sisaEl.innerText = "0"; return; }
+                if(absenSnap.data().jamPulang) { warnText.innerText = "Staff sudah absen pulang!"; warnBox.classList.remove('hidden'); sisaEl.innerText = "0"; return; }
 
-                // 2. Cek Izin Aktif
                 const aktifQ = query(collection(db, "permits"), where("userId", "==", currentUserId), where("status", "==", "aktif"));
                 const aktifSnap = await getDocs(aktifQ);
-                if(!aktifSnap.empty) {
-                    warnText.innerText = "Staff masih dalam status izin keluar!"; warnBox.classList.remove('hidden'); sisaEl.innerText = "0"; return;
-                }
+                if(!aktifSnap.empty) { warnText.innerText = "Staff masih dalam status izin keluar!"; warnBox.classList.remove('hidden'); sisaEl.innerText = "0"; return; }
 
-                // 3. Cek Batas 4x Izin
                 const hariIniQ = query(collection(db, "permits"), where("userId", "==", currentUserId), where("tanggal", "==", t));
                 const hariIniSnap = await getDocs(hariIniQ);
                 const izinCount = hariIniSnap.size;
                 const sisa = 4 - izinCount;
                 sisaEl.innerText = sisa;
 
-                if(sisa <= 0) {
-                    warnText.innerText = "Batas izin keluar hari ini telah tercapai (4x)!"; warnBox.classList.remove('hidden'); return;
-                }
+                if(sisa <= 0) { warnText.innerText = "Batas izin keluar hari ini telah tercapai (4x)!"; warnBox.classList.remove('hidden'); return; }
 
-                // 4. Cek Shift Aktif
                 const hour = new Date().getHours();
                 let shiftAktif = false;
                 if(currentUserData.shift === 'Pagi' && hour >= 8 && hour < 16) shiftAktif = true;
                 if(currentUserData.shift === 'Sore' && hour >= 16 && hour < 23) shiftAktif = true;
                 if(currentUserData.shift === 'Malam' && (hour >= 23 || hour < 8)) shiftAktif = true;
-                if(!shiftAktif) {
-                    warnText.innerText = "Izin hanya bisa diajukan pada shift kerja Anda!"; warnBox.classList.remove('hidden'); return;
-                }
+                if(!shiftAktif) { warnText.innerText = "Izin hanya bisa diajukan pada shift kerja Anda!"; warnBox.classList.remove('hidden'); return; }
 
-                // 5. Cek Minimal Staf Aktif (Kasir >= 3, CS >= 2)
                 const usersSnap = await getDocs(collection(db, "users"));
                 const permitsSnap = await getDocs(query(collection(db, "permits"), where("tanggal", "==", t), where("status", "==", "aktif")));
-                
                 let totalKasir = 0, outKasir = 0, totalCS = 0, outCS = 0;
                 const outIds = [];
                 permitsSnap.forEach(d => outIds.push(d.data().userId));
@@ -358,18 +357,12 @@
 
                 const activeKasir = totalKasir - outKasir;
                 const activeCS = totalCS - outCS;
-                // Fallback jika total staf kurang dari requirement
                 const minKasirReq = Math.min(3, totalKasir); 
                 const minCSReq = Math.min(2, totalCS);
 
-                if(currentUserData.role === 'KASIR' && activeKasir <= minKasirReq) {
-                    warnText.innerText = `Minimal ${minKasirReq} staff kasir harus tetap aktif! (Sisa: ${activeKasir})`; warnBox.classList.remove('hidden'); return;
-                }
-                if((currentUserData.role === 'CS LINE' || currentUserData.role === 'CS LiveChat') && activeCS <= minCSReq) {
-                    warnText.innerText = `Minimal ${minCSReq} staff CS harus tetap aktif! (Sisa: ${activeCS})`; warnBox.classList.remove('hidden'); return;
-                }
+                if(currentUserData.role === 'KASIR' && activeKasir <= minKasirReq) { warnText.innerText = `Minimal ${minKasirReq} staff kasir harus tetap aktif! (Sisa: ${activeKasir})`; warnBox.classList.remove('hidden'); return; }
+                if((currentUserData.role === 'CS LINE' || currentUserData.role === 'CS LiveChat') && activeCS <= minCSReq) { warnText.innerText = `Minimal ${minCSReq} staff CS harus tetap aktif! (Sisa: ${activeCS})`; warnBox.classList.remove('hidden'); return; }
 
-                // Jika semua validasi lolos
                 btn1.disabled = false; btn2.disabled = false;
 
             } catch(e) { console.error("Izin Eligibility Error", e); }
@@ -407,11 +400,11 @@
         window.kembaliIzin=async(id)=>{try{await updateDoc(doc(db,"permits",id),{status:'kembali'});showToast("Kembali dicatat.","success");}catch(e){showToast(e.message,"error");}};
 
         function listenPermits(){if(unsubscribePermits)unsubscribePermits();const t=getToday();unsubscribePermits=onSnapshot(query(collection(db,"permits"),where("tanggal","==",t)),(snap)=>{let h='',monH='';const n=new Date();let sI=0,sT=0,sL=0;
-        // Auto reset midnight check (force close if date passed)
         snap.forEach(d => { const p=d.data(); if(p.status==='aktif' && n > p.endTimeStamp.toDate()){ updateDoc(doc(db,"permits",d.id),{status:'lewat'}).catch(e=>{}); } });
 
-        const hariIniQ = snap.docs.filter(d => d.data().userId === currentUserId);
-        if(hariIniQ.length >= 4) sL++;
+        const limitCount = {};
+        snap.forEach(d => { const p = d.data(); limitCount[p.userId] = (limitCount[p.userId] || 0) + 1; });
+        Object.values(limitCount).forEach(count => { if(count >= 4) sL++; });
 
         snap.forEach(d=>{const p=d.data();let sH='';if(p.status==='aktif'){sH=`<span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded text-xs font-bold border border-sky-500/30">Keluar</span>`;sI++;monH+=`<div class="bg-slate-800 p-3 rounded-lg flex justify-between items-center border border-slate-700"><span class="font-medium text-white">${p.nama} (${p.tipe==='merokok'?'🚬':'☕'})</span><span id="countdown-${d.id}" class="text-sky-400 font-mono font-bold"></span></div>`;}else if(p.status==='lewat'){sH=`<span class="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs font-bold border border-red-500/30 animate-pulse">LEWAT</span>`;sT++;monH+=`<div class="bg-red-900/20 p-3 rounded-lg flex justify-between items-center border border-red-500/30 neon-border-red"><span class="font-medium text-red-300">${p.nama} (TERLAMBAT)</span><button onclick="kembaliIzin('${d.id}')" class="bg-red-600 px-3 py-1 rounded text-xs font-bold text-white">Kembalikan</button></div>`;}else{sH=`<span class="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-bold border border-green-500/30">Kembali</span>`;}
         h+=`<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="p-4 font-medium">${p.nama}</td><td class="p-4">${p.role}</td><td class="p-4">${p.tipe==='merokok'?'🚬':'☕'}</td><td class="p-4">${p.jamKeluar}</td><td class="p-4">${p.batasKembali}</td><td class="p-4 flex gap-2">${sH} ${p.status!=='kembali'&&p.userId===currentUserId?`<button onclick="kembaliIzin('${d.id}')" class="bg-green-600 px-2 py-1 rounded text-xs font-bold text-white">Kembali</button>`:''}</td></tr>`;});document.getElementById('monitoringList').innerHTML=monH||'<p class="text-slate-500 text-sm text-center">Aman</p>';document.getElementById('statIzin').innerText=sI;document.getElementById('statTerlambat').innerText=sT;document.getElementById('statLimit').innerText=sL;updateSelfStatus();startCountdowns(snap);},(e)=>showToast(e.message,"error"));}
@@ -428,28 +421,27 @@
         window.toggleJobdesk=async(id,status)=>{try{await updateDoc(doc(db,"jobdesk",id),{status:status==='selesai'?'belum':'selesai'});}catch(e){showToast(e.message,"error");}};
         window.deleteJobdesk=async(id)=>{try{await deleteDoc(doc(db,"jobdesk",id));showToast("Dihapus","success");}catch(e){showToast(e.message,"error");}};
 
+        // PENGUMUMAN
+        async function loadAnnouncements(){try{const snap=await getDocs(collection(db,"announcements"));let docs=[];snap.forEach(d=>docs.push({id:d.id,...d.data()}));docs.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));let h='';docs.forEach(a=>{const dateStr=new Date(a.createdAt).toLocaleString('id-ID');let delBtn='';if(currentUserData.role==='LEADER'||currentUserData.role==='CS LINE'){delBtn=`<button onclick="deleteAnnouncement('${a.id}')" class="text-red-400 hover:text-red-300 text-xs ml-2 transition hover:scale-110"><i class="fa-solid fa-times-circle"></i></button>`;}h+=`<div class="bg-slate-800 p-4 rounded-lg border border-yellow-500/30 shadow-md"><div class="flex justify-between items-center mb-2"><span class="text-sm text-yellow-400 font-bold"><i class="fa-solid fa-user-pen mr-1"></i> ${a.author} ${delBtn}</span><span class="text-xs text-slate-500">${dateStr}</span></div><p class="text-white text-sm leading-relaxed">${a.text}</p></div>`;});document.getElementById('announceList').innerHTML=h||'<p class="text-slate-500 text-sm text-center">Belum ada pengumuman</p>';const last=docs[0];if(last){document.getElementById('announcementBanner').classList.remove('hidden');document.getElementById('announceText').innerText=last.text;}else{document.getElementById('announcementBanner').classList.add('hidden');}}catch(e){showToast("Gagal memuat pengumuman: "+e.message,"error");}}
+        window.postAnnouncement=async()=>{const t=document.getElementById('announceInput').value.trim();if(!t)return showToast("Tulis pengumuman dulu!","warning");try{await addDoc(collection(db,"announcements"),{text:t,author:currentUserData.nama,createdAt:new Date().toISOString()});document.getElementById('announceInput').value='';showToast("Pengumuman diposting!","success");loadAnnouncements();}catch(e){showToast(e.message,"error");}};
+        window.deleteAnnouncement=async(id=>{if(confirm("Hapus pengumuman ini?")){try{await deleteDoc(doc(db,"announcements",id));showToast("Pengumuman dihapus","info");loadAnnouncements();}catch(e){showToast(e.message,"error");}}});
+
         // RIWAYAT
-        window.loadHistory=async(filter)=>{try{let qRef=collection(db,"permits");const now=new Date();let constraints=[where("tanggal","<=",getToday())];if(filter==='today'){constraints.push(where("tanggal","==",getToday()));}else if(filter==='yesterday'){const d=new Date(now.setDate(now.getDate()-1)).toISOString().split('T')[0];constraints=[where("tanggal","==",d)];}else if(filter==='week'){const d=new Date();d.setDate(d.getDate()-7);constraints.push(where("tanggal",">=",d.toISOString().split('T')[0]));}else if(filter==='month'){const d=new Date();d.setMonth(d.getMonth()-1);constraints.push(where("tanggal",">=",d.toISOString().split('T')[0]));}
+        window.loadHistory=async(filter)=>{try{let qRef=collection(db,"permits");const now=new Date();let constraints=[];if(filter==='today'){constraints.push(where("tanggal","==",getToday()));}else if(filter==='yesterday'){const d=new Date(now.setDate(now.getDate()-1)).toISOString().split('T')[0];constraints.push(where("tanggal","==",d));}else if(filter==='week'){const d=new Date();d.setDate(d.getDate()-7);constraints.push(where("tanggal",">=",d.toISOString().split('T')[0]));}else if(filter==='month'){const d=new Date();d.setMonth(d.getMonth()-1);constraints.push(where("tanggal",">=",d.toISOString().split('T')[0]));}
         const snap=await getDocs(query(qRef,...constraints));let h='';snap.forEach(d=>{const p=d.data();const sC=p.status==='lewat'?'text-red-400':p.status==='aktif'?'text-sky-400':'text-green-400';h+=`<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="p-4 font-medium">${p.nama}</td><td class="p-4">${p.role}</td><td class="p-4">${p.tipe==='merokok'?'🚬':'☕'}</td><td class="p-4">${p.jamKeluar}</td><td class="p-4">${p.batasKembali}</td><td class="p-4 font-bold ${sC}">${p.status.toUpperCase()}</td></tr>`;});document.getElementById('riwayatBody').innerHTML=h||'<tr><td colspan="6" class="text-center p-8 text-slate-500">Tidak ada data</td></tr>';}catch(e){showToast("Gagal memuat riwayat: "+e.message,"error");}};
 
-        // KELOLA STAF ( FIXED DELETE )
+        // KELOLA STAF
         window.tambahStaf=async()=>{const n=document.getElementById('addNama').value.trim(),e=document.getElementById('addEmail').value.trim().toLowerCase(),r=document.getElementById('addRole').value;if(!n||!e)return showToast("Isi data!","warning");try{await addDoc(collection(db,"invitations"),{nama:n,email:e,role:r});showToast("Undangan dikirim!","success");document.getElementById('addNama').value='';document.getElementById('addEmail').value='';loadStafList();}catch(e){showToast(e.message,"error");}};
         
         async function loadStafList(){if(currentUserData.role!=='LEADER')return;try{const uS=await getDocs(collection(db,"users")),iS=await getDocs(collection(db,"invitations"));let h='',hs='';uS.forEach(d=>{const u=d.data();if(u.role==='LEADER')return;h+=`<tr class="border-b border-slate-800"><td class="p-4">${u.nama}</td><td class="p-4 text-slate-400">${u.email}</td><td class="p-4">${u.role}</td><td class="p-4">${u.shift}</td><td class="p-4"><button onclick="deleteStaff('${d.id}')" class="text-red-400 hover:text-red-300 text-sm"><i class="fa-solid fa-trash"></i></button></td></tr>`;hs+=`<option value="${d.id}">${u.nama} (${u.shift})</option>`;});iS.forEach(d=>{const u=d.data();h+=`<tr class="border-b border-slate-800 bg-yellow-900/10"><td class="p-4 text-yellow-300">${u.nama}</td><td class="p-4">${u.email}</td><td class="p-4">${u.role}</td><td class="p-4 italic">-</td><td class="p-4"><button onclick="deleteInvitation('${d.id}')" class="text-red-400 text-sm"><i class="fa-solid fa-trash"></i></button></td></tr>`;});document.getElementById('stafTableBody').innerHTML=h;document.getElementById('shiftStafSelect').innerHTML=hs;}catch(e){showToast(e.message,"error");}}
         
         window.updateShift=async()=>{const id=document.getElementById('shiftStafSelect').value,s=document.getElementById('shiftTypeSelect').value;if(!id)return;try{await updateDoc(doc(db,"users",id),{shift:s});showToast("Shift diubah!","success");loadStafList();}catch(e){showToast(e.message,"error");}};
         
-        // Fixed Delete Functions (Global Scope)
-        window.deleteStaff = async (id) => {
-            if(confirm("Hapus staf ini dari database?")) {
-                try { await deleteDoc(doc(db, "users", id)); showToast("Staf berhasil dihapus!", "success"); loadStafList(); } catch(e) { showToast("Gagal hapus: "+e.message, "error"); }
-            }
-        };
-        window.deleteInvitation = async (id) => {
-            if(confirm("Batalkan undangan ini?")) {
-                try { await deleteDoc(doc(db, "invitations", id)); showToast("Undangan dibatalkan!", "success"); loadStafList(); } catch(e) { showToast("Gagal hapus: "+e.message, "error"); }
-            }
-        };
+        window.deleteStaff = async (id) => { if(confirm("Hapus staf ini dari database?")) { try { await deleteDoc(doc(db, "users", id)); showToast("Staf berhasil dihapus!", "success"); loadStafList(); } catch(e) { showToast("Gagal hapus: "+e.message, "error"); } } };
+        window.deleteInvitation = async (id) => { if(confirm("Batalkan undangan ini?")) { try { await deleteDoc(doc(db, "invitations", id)); showToast("Undangan dibatalkan!", "success"); loadStafList(); } catch(e) { showToast("Gagal hapus: "+e.message, "error"); } } };
+
+        // Live Clock
+        setInterval(() => { const now = new Date(); const el=document.getElementById('liveClock'); if(el) el.innerText=now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); const dl=document.getElementById('liveDate'); if(dl) dl.innerText=now.toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }, 1000);
 
     </script>
 </body>
