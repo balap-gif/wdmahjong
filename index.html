@@ -15,11 +15,11 @@
             font-family: 'Inter', sans-serif;
         }
         .bg-overlay {
-            background-color: rgba(2, 6, 23, 0.75); 
+            background-color: rgba(2, 6, 23, 0.8);
             backdrop-filter: blur(12px);
         }
         .glass-card {
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15, 23, 42, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
@@ -37,9 +37,25 @@
         ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 3px; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .toast {
+            animation: slideIn 0.4s ease, fadeOut 0.4s ease 3.6s forwards;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+        @keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
     </style>
 </head>
 <body class="min-h-screen text-white flex">
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm"></div>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black/70 z-[9998] flex items-center justify-center">
+        <div class="text-center">
+            <i class="fa-solid fa-spinner fa-spin text-sky-400 text-5xl mb-4"></i>
+            <p class="text-white text-lg font-medium">Memproses data...</p>
+        </div>
+    </div>
 
     <!-- LOGIN SECTION -->
     <div id="loginSection" class="flex items-center justify-center min-h-screen w-full bg-overlay">
@@ -49,9 +65,12 @@
                 <h2 class="text-3xl font-bold text-white">Login Panel</h2>
                 <p class="text-slate-400 text-sm mt-2">Gunakan Gmail yang telah didaftarkan</p>
             </div>
-            <input type="email" id="loginEmail" placeholder="Email Staf" class="w-full p-3.5 mb-3 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-sky-500 transition">
-            <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3.5 mb-5 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-sky-500 transition">
-            <button onclick="login()" class="w-full bg-sky-600 hover:bg-sky-500 p-3.5 rounded-xl font-bold transition shadow-lg shadow-sky-500/20 text-lg">Masuk</button>
+            <div id="loginError" class="hidden bg-red-500/20 border border-red-500/30 text-red-300 p-3 rounded-xl mb-4 text-sm"></div>
+            <input type="email" id="loginEmail" placeholder="Email Staf" class="w-full p-3.5 mb-3 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-sky-500 transition text-white">
+            <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3.5 mb-5 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-sky-500 transition text-white">
+            <button onclick="login()" id="btnLogin" class="w-full bg-sky-600 hover:bg-sky-500 p-3.5 rounded-xl font-bold transition shadow-lg shadow-sky-500/20 text-lg">
+                <i class="fa-solid fa-right-to-bracket mr-2"></i> Masuk
+            </button>
             <div class="flex justify-center mt-4">
                 <button onclick="showRegister()" class="text-sm text-slate-400 hover:text-sky-400 transition underline">Belum punya akun? Daftar di sini</button>
             </div>
@@ -66,9 +85,12 @@
                 <h2 class="text-3xl font-bold text-white">Daftar Akun</h2>
                 <p class="text-slate-400 text-sm mt-2">Hanya Gmail yang diizinkan Leader yang bisa mendaftar</p>
             </div>
-            <input type="email" id="regEmail" placeholder="Gmail Anda" class="w-full p-3.5 mb-3 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-emerald-500 transition">
-            <input type="password" id="regPassword" placeholder="Buat Password (Min 6 karakter)" class="w-full p-3.5 mb-5 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-emerald-500 transition">
-            <button onclick="register()" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3.5 rounded-xl font-bold transition shadow-lg shadow-emerald-500/20 text-lg">Daftar Sekarang</button>
+            <div id="regError" class="hidden bg-red-500/20 border border-red-500/30 text-red-300 p-3 rounded-xl mb-4 text-sm"></div>
+            <input type="email" id="regEmail" placeholder="Gmail Anda" class="w-full p-3.5 mb-3 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-emerald-500 transition text-white">
+            <input type="password" id="regPassword" placeholder="Buat Password (Min 6 karakter)" class="w-full p-3.5 mb-5 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-emerald-500 transition text-white">
+            <button onclick="register()" id="btnRegister" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3.5 rounded-xl font-bold transition shadow-lg shadow-emerald-500/20 text-lg">
+                <i class="fa-solid fa-user-plus mr-2"></i> Daftar Sekarang
+            </button>
             <div class="flex justify-center mt-4">
                 <button onclick="showLogin()" class="text-sm text-slate-400 hover:text-sky-400 transition underline">Sudah punya akun? Login</button>
             </div>
@@ -84,6 +106,11 @@
                 <div class="text-center border-b border-slate-700/50 pb-5 mb-5">
                     <h1 class="text-2xl font-bold text-sky-400 tracking-wider">IZIN KELUAR</h1>
                     <p id="sideRole" class="text-xs text-slate-500 mt-1 uppercase font-bold tracking-[0.2em]"></p>
+                    <!-- Connection Status -->
+                    <div id="connStatus" class="mt-2 flex items-center justify-center gap-2 text-xs">
+                        <span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
+                        <span class="text-slate-400">Menghubungkan...</span>
+                    </div>
                 </div>
                 
                 <div class="flex flex-col gap-1">
@@ -139,7 +166,7 @@
                 <div id="liveClock" class="text-2xl font-mono text-sky-400 font-bold tracking-wider"></div>
             </div>
 
-            <!-- TABS -->
+            <!-- TAB ABSEN -->
             <div id="tab-absen" class="tab-content fade-in">
                 <div class="glass-card p-8 rounded-2xl max-w-2xl">
                     <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-fingerprint text-sky-400"></i> Absen Masuk Kerja</h3>
@@ -151,6 +178,7 @@
                 </div>
             </div>
 
+            <!-- TAB IZIN -->
             <div id="tab-izin" class="tab-content hidden fade-in">
                 <div id="izinLeaderWarn" class="hidden glass-card p-8 rounded-2xl border-l-4 border-yellow-500 mb-6">
                     <p class="text-yellow-400 font-bold text-lg"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Leader tidak diizinkan mengisi jam keluar.</p>
@@ -175,6 +203,7 @@
                 </div>
             </div>
 
+            <!-- TAB RIWAYAT -->
             <div id="tab-riwayat" class="tab-content hidden fade-in">
                 <div class="glass-card p-8 rounded-2xl">
                     <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-sky-400"></i> Riwayat Izin Hari Ini</h3>
@@ -196,6 +225,7 @@
                 </div>
             </div>
 
+            <!-- TAB JADWAL -->
             <div id="tab-jadwal" class="tab-content hidden fade-in">
                 <div class="glass-card p-8 rounded-2xl mb-6">
                     <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-calendar-days text-sky-400"></i> Jadwal Jobdeks & Shift Kerja</h3>
@@ -220,8 +250,8 @@
 
                 <div id="shiftManagerArea" class="hidden glass-card p-8 rounded-2xl border-t-4 border-yellow-500">
                     <h3 class="text-xl font-bold mb-4 text-yellow-400 flex items-center gap-2"><i class="fa-solid fa-pen-ruler"></i> Atur Shift Staf</h3>
-                    <div class="flex gap-4 items-end">
-                        <div class="flex-1">
+                    <div class="flex gap-4 items-end flex-wrap">
+                        <div class="flex-1 min-w-[200px]">
                             <label class="text-xs text-slate-400 block mb-1">Pilih Staf</label>
                             <select id="shiftStafSelect" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg text-white"></select>
                         </div>
@@ -238,6 +268,7 @@
                 </div>
             </div>
 
+            <!-- TAB KELOLA STAF -->
             <div id="tab-kelola" class="tab-content hidden fade-in">
                 <div class="glass-card p-8 rounded-2xl border-t-4 border-yellow-500 mb-6">
                     <h3 class="text-xl font-bold mb-6 text-yellow-400 flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> Tambah Staf Baru</h3>
@@ -260,7 +291,7 @@
                             </select>
                         </div>
                     </div>
-                    <button onclick="tambahStaf()" class="mt-4 bg-yellow-600 hover:bg-yellow-500 px-6 py-3 rounded-lg font-bold transition text-white"><i class="fa-solid fa-plus mr-2"></i> Daftarkan Staf</button>
+                    <button onclick="tambahStaf()" id="btnTambahStaf" class="mt-4 bg-yellow-600 hover:bg-yellow-500 px-6 py-3 rounded-lg font-bold transition text-white"><i class="fa-solid fa-plus mr-2"></i> Daftarkan Staf</button>
                 </div>
 
                 <div class="glass-card p-8 rounded-2xl">
@@ -273,6 +304,7 @@
                                     <th class="p-4">Gmail</th>
                                     <th class="p-4">Panel</th>
                                     <th class="p-4">Shift</th>
+                                    <th class="p-4">Status</th>
                                     <th class="p-4">Aksi</th>
                                 </tr>
                             </thead>
@@ -282,6 +314,7 @@
                 </div>
             </div>
 
+            <!-- TAB DATA KEMARIN -->
             <div id="tab-kemarin" class="tab-content hidden fade-in">
                 <div class="glass-card p-8 rounded-2xl border-t-4 border-emerald-500">
                     <h3 class="text-xl font-bold mb-6 text-emerald-400 flex items-center gap-2"><i class="fa-solid fa-database"></i> Data Kemarin</h3>
@@ -315,7 +348,9 @@
         </div>
     </div>
 
+    <!-- FIREBASE & LOGIC -->
     <script type="module">
+        // ====== FIREBASE INIT ======
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, addDoc, updateDoc, onSnapshot, query, where, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -330,15 +365,60 @@
             measurementId: "G-25WVSLDCK4"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        let app, auth, db;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            updateConnStatus(true);
+            console.log("✅ Firebase initialized successfully");
+        } catch(e) {
+            updateConnStatus(false, "Firebase init error: " + e.message);
+            console.error("❌ Firebase init error:", e);
+        }
 
         const LEADER_EMAILS = ["hendrysalim260@gmail.com", "haris789smb@gmail.com"];
 
         let currentUserData = null;
         let currentUserId = null;
         let unsubscribePermits = null;
+
+        // ====== UTILITY FUNCTIONS ======
+        
+        function updateConnStatus(connected, errorMsg) {
+            const el = document.getElementById('connStatus');
+            if(!el) return;
+            if(connected) {
+                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400"></span><span class="text-green-400">Firebase Terhubung</span>';
+            } else {
+                el.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400"></span><span class="text-red-400" title="'+(errorMsg||'')+'">Firebase Terputus</span>';
+            }
+        }
+
+        window.showToast = function(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const colors = {
+                success: 'bg-green-600 border-green-500',
+                error: 'bg-red-600 border-red-500',
+                info: 'bg-sky-600 border-sky-500',
+                warning: 'bg-yellow-600 border-yellow-500'
+            };
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                info: 'fa-info-circle',
+                warning: 'fa-exclamation-triangle'
+            };
+            const toast = document.createElement('div');
+            toast.className = `toast ${colors[type]} border-l-4 p-4 rounded-lg shadow-xl flex items-start gap-3 text-white`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type]} text-lg mt-0.5"></i><span class="text-sm font-medium">${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { if(toast.parentNode) toast.parentNode.removeChild(toast); }, 4000);
+        };
+
+        window.showLoading = function() { document.getElementById('loadingOverlay').classList.remove('hidden'); };
+        window.hideLoading = function() { document.getElementById('loadingOverlay').classList.add('hidden'); };
 
         // Live Clock
         setInterval(() => {
@@ -348,24 +428,58 @@
             if(el) el.innerText = timeStr;
         }, 1000);
 
+        // UI Switch
         window.showRegister = () => { document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.remove('hidden'); };
         window.showLogin = () => { document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loginSection').classList.remove('hidden'); };
 
+        // ====== AUTH ======
+
         window.login = async () => {
-            const email = document.getElementById('loginEmail').value;
+            const email = document.getElementById('loginEmail').value.trim();
             const pass = document.getElementById('loginPassword').value;
-            if(!email || !pass) return alert("Masukkan email dan password!");
-            try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Login Gagal: " + e.message); }
+            const errEl = document.getElementById('loginError');
+            const btn = document.getElementById('btnLogin');
+            
+            errEl.classList.add('hidden');
+            if(!email || !pass) { errEl.textContent = "Masukkan email dan password!"; errEl.classList.remove('hidden'); return; }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Masuk...';
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                showToast("Login berhasil!", "success");
+            } catch (e) {
+                let msg = e.message;
+                if(e.code === 'auth/user-not-found') msg = "Akun tidak ditemukan. Silakan daftar terlebih dahulu.";
+                else if(e.code === 'auth/wrong-password') msg = "Password salah!";
+                else if(e.code === 'auth/invalid-email') msg = "Format email tidak valid.";
+                else if(e.code === 'auth/invalid-credential') msg = "Email atau password salah!";
+                errEl.textContent = msg;
+                errEl.classList.remove('hidden');
+                showToast(msg, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket mr-2"></i> Masuk';
+            }
         };
 
         window.register = async () => {
-            const email = document.getElementById('regEmail').value;
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
             const pass = document.getElementById('regPassword').value;
-            if(!email || !pass) return alert("Isi email dan password!");
-            if(pass.length < 6) return alert("Password minimal 6 karakter");
+            const errEl = document.getElementById('regError');
+            const btn = document.getElementById('btnRegister');
+            
+            errEl.classList.add('hidden');
+            if(!email || !pass) { errEl.textContent = "Isi email dan password!"; errEl.classList.remove('hidden'); return; }
+            if(pass.length < 6) { errEl.textContent = "Password minimal 6 karakter!"; errEl.classList.remove('hidden'); return; }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Mendaftar...';
+            showLoading();
             
             try {
-                // 1. Cek apakah email diizinkan oleh Leader di tabel invitations
+                // 1. Cek apakah email diizinkan oleh Leader
                 const invQ = query(collection(db, "invitations"), where("email", "==", email));
                 const invSnap = await getDocs(invQ);
                 
@@ -374,9 +488,14 @@
 
                 if (!invSnap.empty) {
                     invData = invSnap.docs[0].data();
-                    invData.id = invSnap.docs[0].id; // simpan id undangan
+                    invData.id = invSnap.docs[0].id;
                 } else if (!isLeader) {
-                    return alert("Gagal! Gmail Anda belum didaftarkan oleh Leader.");
+                    errEl.textContent = "Gagal! Gmail Anda belum didaftarkan oleh Leader. Hubungi Leader terlebih dahulu.";
+                    errEl.classList.remove('hidden');
+                    hideLoading();
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-user-plus mr-2"></i> Daftar Sekarang';
+                    return;
                 }
 
                 // 2. Buat Akun Auth
@@ -388,7 +507,8 @@
                     email: email,
                     nama: isLeader ? "LEADER" : invData.nama,
                     role: isLeader ? "LEADER" : invData.role,
-                    shift: "Pagi"
+                    shift: "Pagi",
+                    createdAt: new Date().toISOString()
                 };
                 
                 await setDoc(doc(db, "users", user.uid), userData);
@@ -398,21 +518,53 @@
                     await deleteDoc(doc(db, "invitations", invData.id));
                 }
 
-            } catch (e) { 
-                alert("Registrasi Gagal: " + e.message); 
+                showToast("Registrasi berhasil! Selamat datang.", "success");
+                
+            } catch (e) {
+                let msg = e.message;
+                if(e.code === 'auth/email-already-in-use') msg = "Email ini sudah terdaftar. Silakan login.";
+                else if(e.code === 'auth/weak-password') msg = "Password terlalu lemah (min 6 karakter).";
+                else if(e.code === 'auth/invalid-email') msg = "Format email tidak valid.";
+                
+                errEl.textContent = msg;
+                errEl.classList.remove('hidden');
+                showToast(msg, "error");
+            } finally {
+                hideLoading();
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-user-plus mr-2"></i> Daftar Sekarang';
             }
         };
 
-        window.logout = () => signOut(auth);
+        window.logout = async () => {
+            try {
+                await signOut(auth);
+                showToast("Berhasil logout.", "info");
+            } catch(e) {
+                showToast("Gagal logout: " + e.message, "error");
+            }
+        };
 
         window.changePassModal = () => document.getElementById('passModal').classList.remove('hidden');
         window.closePassModal = () => document.getElementById('passModal').classList.add('hidden');
         window.saveNewPass = async () => {
             const p = document.getElementById('newPass').value;
-            if(p.length < 6) return alert("Minimal 6 karakter");
-            try { await updatePassword(auth.currentUser, p); alert("Password berhasil diubah!"); window.closePassModal(); } catch(e) { alert("Gagal mengubah password. Silakan logout, lalu login ulang, dan coba lagi."); }
+            if(p.length < 6) { showToast("Password minimal 6 karakter!", "warning"); return; }
+            try {
+                await updatePassword(auth.currentUser, p);
+                showToast("Password berhasil diubah!", "success");
+                window.closePassModal();
+                document.getElementById('newPass').value = '';
+            } catch(e) {
+                if(e.code === 'auth/requires-recent-login') {
+                    showToast("Sesi kadaluarsa. Silakan logout, lalu login ulang, dan coba lagi.", "error");
+                } else {
+                    showToast("Gagal mengubah password: " + e.message, "error");
+                }
+            }
         };
 
+        // ====== AUTH STATE LISTENER ======
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
@@ -420,38 +572,55 @@
                 document.getElementById('registerSection').classList.add('hidden');
                 document.getElementById('dashboardSection').classList.remove('hidden');
 
-                // Ambil data langsung by UID (Sangat Cepat, tidak lemot)
-                const userDocRef = doc(db, "users", user.uid);
-                const userDocSnap = await getDoc(userDocRef);
+                try {
+                    // Ambil data langsung by UID (Sangat Cepat)
+                    const userDocRef = doc(db, "users", user.uid);
+                    const userDocSnap = await getDoc(userDocRef);
 
-                if (userDocSnap.exists()) {
-                    currentUserData = userDocSnap.data();
-                } else {
-                    // Fallback jika auth ada tapi firestore belum kebaca (kasus leader baru register)
-                    let isLeader = LEADER_EMAILS.includes(user.email);
-                    currentUserData = { nama: isLeader ? "LEADER" : "Staf", email: user.email, role: isLeader ? "LEADER" : "Staf", shift: "Pagi" };
-                    await setDoc(userDocRef, currentUserData);
+                    if (userDocSnap.exists()) {
+                        currentUserData = userDocSnap.data();
+                    } else {
+                        // Fallback jika auth ada tapi firestore belum kebaca
+                        let isLeader = LEADER_EMAILS.includes(user.email);
+                        currentUserData = {
+                            nama: isLeader ? "LEADER" : "Staf",
+                            email: user.email,
+                            role: isLeader ? "LEADER" : "Staf",
+                            shift: "Pagi",
+                            createdAt: new Date().toISOString()
+                        };
+                        await setDoc(userDocRef, currentUserData);
+                        showToast("Profil berhasil dibuat di database.", "success");
+                    }
+
+                    // Set UI Sidebar
+                    document.getElementById('sideName').innerText = currentUserData.nama;
+                    document.getElementById('sideEmail').innerText = currentUserData.email;
+                    document.getElementById('sideAvatar').innerText = currentUserData.nama.charAt(0).toUpperCase();
+                    document.getElementById('sideRole').innerText = currentUserData.role;
+
+                    updateConnStatus(true);
+                    setupAccess();
+                    checkAbsen();
+                    listenPermits();
+                    loadStafList();
+                    showTab('absen');
+
+                } catch(e) {
+                    console.error("Error loading user data:", e);
+                    updateConnStatus(false, e.message);
+                    showToast("Gagal memuat data user: " + e.message, "error");
                 }
-
-                // Set UI Sidebar
-                document.getElementById('sideName').innerText = currentUserData.nama;
-                document.getElementById('sideEmail').innerText = currentUserData.email;
-                document.getElementById('sideAvatar').innerText = currentUserData.nama.charAt(0);
-                document.getElementById('sideRole').innerText = currentUserData.role;
-
-                setupAccess();
-                checkAbsen();
-                listenPermits();
-                loadStafList();
-                showTab('absen');
             } else {
-                if(unsubscribePermits) unsubscribePermits(); // Stop listener jika logout
+                if(unsubscribePermits) unsubscribePermits();
                 document.getElementById('loginSection').classList.remove('hidden');
                 document.getElementById('dashboardSection').classList.add('hidden');
                 currentUserData = null;
+                currentUserId = null;
             }
         });
 
+        // ====== ACCESS CONTROL ======
         function setupAccess() {
             const role = currentUserData.role;
             document.getElementById('menuLeader').classList.add('hidden');
@@ -473,68 +642,122 @@
         window.showTab = (tab) => {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.sidebar-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-'+tab).classList.remove('hidden');
-            document.getElementById('btn-'+tab).classList.add('active');
+            const tabEl = document.getElementById('tab-'+tab);
+            const btnEl = document.getElementById('btn-'+tab);
+            if(tabEl) tabEl.classList.remove('hidden');
+            if(btnEl) btnEl.classList.add('active');
 
             if(tab === 'kemarin') loadKemarin();
             if(tab === 'kelola') loadStafList();
         };
 
-        // ABSEN
+        // ====== ABSEN ======
         window.absenMasuk = async () => {
-            const today = new Date().toISOString().split('T')[0];
-            await setDoc(doc(db, "absensi", currentUserId+"_"+today), {
-                userId: currentUserId, nama: currentUserData.nama, role: currentUserData.role, tanggal: today, status: "Hadir"
-            });
-            checkAbsen();
+            const btn = document.getElementById('btnAbsenMasuk');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Memproses...';
+            
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                await setDoc(doc(db, "absensi", currentUserId+"_"+today), {
+                    userId: currentUserId,
+                    nama: currentUserData.nama,
+                    role: currentUserData.role,
+                    tanggal: today,
+                    status: "Hadir",
+                    waktu: new Date().toLocaleTimeString('id-ID')
+                });
+                showToast("Berhasil absen masuk!", "success");
+                checkAbsen();
+            } catch(e) {
+                showToast("Gagal absen: " + e.message, "error");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i> Absen Masuk Sekarang';
+            }
         };
 
         async function checkAbsen() {
-            const today = new Date().toISOString().split('T')[0];
-            const docRef = doc(db, "absensi", currentUserId+"_"+today);
-            const docSnap = await getDoc(docRef);
-            
-            const btn = document.getElementById('btnAbsenMasuk');
-            const stat = document.getElementById('absenStatus');
-            
-            if(docSnap.exists()) {
-                btn.disabled = true; btn.classList.add('opacity-50', 'cursor-not-allowed');
-                stat.classList.remove('hidden');
-                stat.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 mr-2"></i> Anda sudah absen hari ini.';
-            } else {
-                btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                stat.classList.add('hidden');
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const docRef = doc(db, "absensi", currentUserId+"_"+today);
+                const docSnap = await getDoc(docRef);
+                
+                const btn = document.getElementById('btnAbsenMasuk');
+                const stat = document.getElementById('absenStatus');
+                
+                if(docSnap.exists()) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Sudah Absen';
+                    stat.classList.remove('hidden');
+                    stat.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 mr-2"></i> Anda sudah absen hari ini pada pukul ' + (docSnap.data().waktu || '');
+                } else {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btn.innerHTML = '<i class="fa-solid fa-check-circle mr-2"></i> Absen Masuk Sekarang';
+                    stat.classList.add('hidden');
+                }
+            } catch(e) {
+                showToast("Gagal cek absen: " + e.message, "error");
             }
         }
 
-        // IZIN KELUAR
+        // ====== IZIN KELUAR ======
         window.ajukanIzin = async (tipe) => {
-            const today = new Date().toISOString().split('T')[0];
-            const docRef = doc(db, "absensi", currentUserId+"_"+today);
-            const docSnap = await getDoc(docRef);
-            
-            if(!docSnap.exists()) return alert("Anda belum absen masuk!");
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const docRef = doc(db, "absensi", currentUserId+"_"+today);
+                const docSnap = await getDoc(docRef);
+                
+                if(!docSnap.exists()) {
+                    showToast("Anda belum absen masuk! Absen terlebih dahulu.", "warning");
+                    return;
+                }
 
-            const qActive = query(collection(db, "permits"), where("userId", "==", currentUserId), where("status", "==", "aktif"));
-            const snapActive = await getDocs(qActive);
-            if(!snapActive.empty) return alert("Anda sedang dalam izin keluar!");
+                const qActive = query(collection(db, "permits"), where("userId", "==", currentUserId), where("status", "==", "aktif"));
+                const snapActive = await getDocs(qActive);
+                if(!snapActive.empty) {
+                    showToast("Anda sedang dalam izin keluar!", "warning");
+                    return;
+                }
 
-            const durasi = tipe === 'merokok' ? 20 : 15;
-            const start = new Date();
-            const end = new Date(start.getTime() + durasi * 60000);
+                const durasi = tipe === 'merokok' ? 20 : 15;
+                const start = new Date();
+                const end = new Date(start.getTime() + durasi * 60000);
 
-            await addDoc(collection(db, "permits"), {
-                userId: currentUserId, nama: currentUserData.nama, role: currentUserData.role,
-                tipe, durasi, jamKeluar: start.toLocaleTimeString('id-ID'), batasKembali: end.toLocaleTimeString('id-ID'),
-                endTimeStamp: end, status: "aktif", tanggal: today
-            });
+                await addDoc(collection(db, "permits"), {
+                    userId: currentUserId,
+                    nama: currentUserData.nama,
+                    role: currentUserData.role,
+                    tipe: tipe,
+                    durasi: durasi,
+                    jamKeluar: start.toLocaleTimeString('id-ID'),
+                    batasKembali: end.toLocaleTimeString('id-ID'),
+                    endTimeStamp: end,
+                    status: "aktif",
+                    tanggal: today
+                });
+                
+                showToast("Izin keluar berhasil diajukan! Batas waktu: " + end.toLocaleTimeString('id-ID'), "success");
+                showTab('izin'); // Stay on izin panel
+            } catch(e) {
+                showToast("Gagal mengajukan izin: " + e.message, "error");
+            }
         };
 
         window.kembaliIzin = async (id) => {
-            await updateDoc(doc(db, "permits", id), { status: 'kembali' });
+            try {
+                await updateDoc(doc(db, "permits", id), { status: 'kembali' });
+                showToast("Anda telah ditandai kembali.", "success");
+            } catch(e) {
+                showToast("Gagal update status: " + e.message, "error");
+            }
         };
 
         function listenPermits() {
+            // Unsubscribe previous listener
+            if(unsubscribePermits) unsubscribePermits();
+            
             const today = new Date().toISOString().split('T')[0];
             const q = query(collection(db, "permits"), where("tanggal", "==", today));
             
@@ -548,15 +771,16 @@
                     
                     if(p.status === 'aktif') {
                         if(now > p.endTimeStamp.toDate()) {
-                            updateDoc(doc(db, "permits", d.id), { status: 'lewat' });
-                            statusHtml = `<span class="bg-red-500/20 text-red-400 px-2.5 py-1 rounded-md text-xs font-bold border border-red-500/30">LEWAT WAKTU</span>`;
+                            // Auto-update to 'lewat'
+                            updateDoc(doc(db, "permits", d.id), { status: 'lewat' }).catch(e => console.error(e));
+                            statusHtml = `<span class="bg-red-500/20 text-red-400 px-2.5 py-1 rounded-md text-xs font-bold border border-red-500/30"><i class="fa-solid fa-triangle-exclamation mr-1"></i>LEWAT WAKTU</span>`;
                         } else {
-                            statusHtml = `<span class="bg-sky-500/20 text-sky-400 px-2.5 py-1 rounded-md text-xs font-bold border border-sky-500/30">Sedang Keluar</span>`;
+                            statusHtml = `<span class="bg-sky-500/20 text-sky-400 px-2.5 py-1 rounded-md text-xs font-bold border border-sky-500/30 animate-pulse"><i class="fa-solid fa-clock mr-1"></i>Sedang Keluar</span>`;
                         }
                     } else if(p.status === 'lewat') {
-                        statusHtml = `<span class="bg-red-500/20 text-red-400 px-2.5 py-1 rounded-md text-xs font-bold border border-red-500/30">LEWAT WAKTU</span>`;
+                        statusHtml = `<span class="bg-red-500/20 text-red-400 px-2.5 py-1 rounded-md text-xs font-bold border border-red-500/30"><i class="fa-solid fa-triangle-exclamation mr-1"></i>LEWAT WAKTU</span>`;
                     } else {
-                        statusHtml = `<span class="bg-slate-600/30 text-slate-400 px-2.5 py-1 rounded-md text-xs font-bold border border-slate-600/30">Kembali</span>`;
+                        statusHtml = `<span class="bg-green-500/20 text-green-400 px-2.5 py-1 rounded-md text-xs font-bold border border-green-500/30"><i class="fa-solid fa-check mr-1"></i>Kembali</span>`;
                     }
 
                     html += `<tr class="border-b border-slate-800 hover:bg-slate-800/40 transition">
@@ -567,130 +791,193 @@
                         <td class="p-4">${p.batasKembali}</td>
                         <td class="p-4 flex items-center gap-2">
                             ${statusHtml}
-                            ${p.status !== 'kembali' && p.userId === currentUserId ? `<button onclick="kembaliIzin('${d.id}')" class="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded-md text-xs font-bold transition text-white">Kembali</button>` : ''}
+                            ${p.status !== 'kembali' && p.userId === currentUserId ? `<button onclick="kembaliIzin('${d.id}')" class="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded-md text-xs font-bold transition text-white"><i class="fa-solid fa-right-to-bracket mr-1"></i>Kembali</button>` : ''}
                         </td>
                     </tr>`;
                 });
-                document.getElementById('riwayatBody').innerHTML = html || '<tr><td colspan="6" class="text-center p-8 text-slate-500">Belum ada riwayat izin hari ini</td></tr>';
+                document.getElementById('riwayatBody').innerHTML = html || '<tr><td colspan="6" class="text-center p-8 text-slate-500"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i>Belum ada riwayat izin hari ini</td></tr>';
                 
                 updateSelfStatus();
+            }, (error) => {
+                console.error("Permits listener error:", error);
+                showToast("Gagal memuat data izin: " + error.message, "error");
+                updateConnStatus(false, error.message);
             });
         }
 
         async function updateSelfStatus() {
-            const q = query(collection(db, "permits"), where("userId", "==", currentUserId), where("status", "==", "aktif"));
-            const snap = await getDocs(q);
-            const el = document.getElementById('izinActiveStatus');
-            
-            if(!snap.empty) {
-                const p = snap.docs[0].data();
-                el.classList.remove('hidden');
-                el.innerHTML = `
-                    <div class="text-sky-400 font-bold text-lg mb-2"><i class="fa-solid fa-clock mr-2"></i> Sedang Izin Keluar</div>
-                    <p class="text-slate-300 mb-4">Tujuan: ${p.tipe === 'merokok' ? 'Merokok' : 'Non-Rokok'} | Batas Kembali: <span class="text-white font-bold">${p.batasKembali}</span></p>
-                    <button onclick="kembaliIzin('${snap.docs[0].id}')" class="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-xl font-bold transition shadow-lg shadow-green-500/20 text-white">
-                        <i class="fa-solid fa-right-to-bracket mr-2"></i> Klik Jika Sudah Kembali
-                    </button>
-                `;
-            } else {
-                el.classList.add('hidden');
+            if(!currentUserId) return;
+            try {
+                const q = query(collection(db, "permits"), where("userId", "==", currentUserId), where("status", "==", "aktif"));
+                const snap = await getDocs(q);
+                const el = document.getElementById('izinActiveStatus');
+                
+                if(!snap.empty) {
+                    const p = snap.docs[0].data();
+                    el.classList.remove('hidden');
+                    el.innerHTML = `
+                        <div class="text-sky-400 font-bold text-lg mb-2"><i class="fa-solid fa-clock mr-2"></i> Sedang Izin Keluar</div>
+                        <p class="text-slate-300 mb-4">Tujuan: ${p.tipe === 'merokok' ? 'Merokok 🚬' : 'Non-Rokok ☕'} | Batas Kembali: <span class="text-white font-bold text-lg">${p.batasKembali}</span></p>
+                        <button onclick="kembaliIzin('${snap.docs[0].id}')" class="bg-green-600 hover:bg-green-500 px-8 py-3 rounded-xl font-bold transition shadow-lg shadow-green-500/20 text-white text-lg">
+                            <i class="fa-solid fa-right-to-bracket mr-2"></i> Klik Jika Sudah Kembali
+                        </button>
+                    `;
+                } else {
+                    el.classList.add('hidden');
+                }
+            } catch(e) {
+                console.error("Self status error:", e);
             }
         }
 
-        // DATA KEMARIN
+        // ====== DATA KEMARIN ======
         async function loadKemarin() {
             if(currentUserData.role !== 'LEADER' && currentUserData.role !== 'CS LINE') return;
-            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-            const q = query(collection(db, "permits"), where("tanggal", "==", yesterday));
-            const snap = await getDocs(q);
-            let html = '';
-            snap.forEach(d => {
-                const p = d.data();
-                const stat = p.status === 'lewat' ? '<span class="text-red-400">Lewat Waktu</span>' : '<span class="text-green-400">Tepat Waktu</span>';
-                html += `<tr class="border-b border-slate-800"><td class="p-4">${p.nama}</td><td class="p-4">${p.role}</td><td class="p-4">${p.tipe}</td><td class="p-4">${stat}</td></tr>`;
-            });
-            document.getElementById('kemarinBody').innerHTML = html || '<tr><td colspan="4" class="text-center p-8 text-slate-500">Tidak ada data kemarin</td></tr>';
+            try {
+                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                const q = query(collection(db, "permits"), where("tanggal", "==", yesterday));
+                const snap = await getDocs(q);
+                let html = '';
+                snap.forEach(d => {
+                    const p = d.data();
+                    const stat = p.status === 'lewat' ? '<span class="text-red-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Lewat Waktu</span>' : '<span class="text-green-400"><i class="fa-solid fa-check-circle mr-1"></i>Tepat Waktu</span>';
+                    html += `<tr class="border-b border-slate-800"><td class="p-4">${p.nama}</td><td class="p-4">${p.role}</td><td class="p-4">${p.tipe === 'merokok' ? '🚬 Merokok' : '☕ Non-Rokok'}</td><td class="p-4">${stat}</td></tr>`;
+                });
+                document.getElementById('kemarinBody').innerHTML = html || '<tr><td colspan="4" class="text-center p-8 text-slate-500"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i>Tidak ada data kemarin</td></tr>';
+            } catch(e) {
+                showToast("Gagal memuat data kemarin: " + e.message, "error");
+            }
         }
 
-        // KELOLA STAF (LEADER)
+        // ====== KELOLA STAF ======
         window.tambahStaf = async () => {
-            const nama = document.getElementById('addNama').value;
-            const email = document.getElementById('addEmail').value;
+            const nama = document.getElementById('addNama').value.trim();
+            const email = document.getElementById('addEmail').value.trim().toLowerCase();
             const role = document.getElementById('addRole').value;
-            if(!nama || !email) return alert("Isi Nama dan Gmail!");
+            const btn = document.getElementById('btnTambahStaf');
+            
+            if(!nama || !email) { showToast("Isi Nama dan Gmail!", "warning"); return; }
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Menyimpan...';
             
             try {
-                // Leader hanya menambahkan ke tabel "invitations"
-                await addDoc(collection(db, "invitations"), { nama, email, role });
-                alert("Staf berhasil didaftarkan! Minta staf tersebut untuk melakukan Registrasi di halaman awal.");
+                // Cek apakah email sudah diundang
+                const invQ = query(collection(db, "invitations"), where("email", "==", email));
+                const invSnap = await getDocs(invQ);
+                if(!invSnap.empty) {
+                    showToast("Email ini sudah didaftarkan sebelumnya!", "warning");
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Daftarkan Staf';
+                    return;
+                }
+
+                // Cek apakah email sudah register
+                const userQ = query(collection(db, "users"), where("email", "==", email));
+                const userSnap = await getDocs(userQ);
+                if(!userSnap.empty) {
+                    showToast("Email ini sudah terdaftar sebagai staf aktif!", "warning");
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Daftarkan Staf';
+                    return;
+                }
+
+                // Tambahkan ke tabel invitations
+                await addDoc(collection(db, "invitations"), {
+                    nama: nama,
+                    email: email,
+                    role: role,
+                    createdAt: new Date().toISOString()
+                });
+
+                showToast(`Staf ${nama} berhasil didaftarkan! Minta mereka untuk Register di halaman awal.`, "success");
                 document.getElementById('addNama').value = '';
                 document.getElementById('addEmail').value = '';
                 loadStafList();
             } catch(e) {
-                alert("Gagal menambahkan: " + e.message);
+                showToast("Gagal menambahkan staf: " + e.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Daftarkan Staf';
             }
         };
 
         async function loadStafList() {
             if(currentUserData.role !== 'LEADER' && currentUserData.role !== 'CS LINE') return;
             
-            // Ambil users yang sudah register
-            const userSnap = await getDocs(collection(db, "users"));
-            // Ambil undangan yang belum register
-            const invSnap = await getDocs(collection(db, "invitations"));
-            
-            let htmlStaf = '';
-            let htmlShift = '';
-            
-            userSnap.forEach(d => {
-                const u = d.data();
-                if(u.role === 'LEADER') return; // Sembunyikan leader dari tabel
-                htmlStaf += `<tr class="border-b border-slate-800 hover:bg-slate-800/40 transition">
-                    <td class="p-4 font-medium text-white">${u.nama}</td>
-                    <td class="p-4 text-slate-400">${u.email}</td>
-                    <td class="p-4"><span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded-md text-xs font-bold border border-sky-500/30">${u.role}</span></td>
-                    <td class="p-4"><span class="bg-purple-500/20 text-purple-400 px-2 py-1 rounded-md text-xs font-bold border border-purple-500/30">${u.shift}</span></td>
-                    <td class="p-4"><button onclick="deleteUser('${d.id}')" class="text-red-400 hover:text-red-300 transition"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>`;
-                htmlShift += `<option value="${d.id}">${u.nama} - Shift: ${u.shift}</option>`;
-            });
+            try {
+                const userSnap = await getDocs(collection(db, "users"));
+                const invSnap = await getDocs(collection(db, "invitations"));
+                
+                let htmlStaf = '';
+                let htmlShift = '';
+                
+                userSnap.forEach(d => {
+                    const u = d.data();
+                    if(u.role === 'LEADER') return;
+                    htmlStaf += `<tr class="border-b border-slate-800 hover:bg-slate-800/40 transition">
+                        <td class="p-4 font-medium text-white">${u.nama}</td>
+                        <td class="p-4 text-slate-400">${u.email}</td>
+                        <td class="p-4"><span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded-md text-xs font-bold border border-sky-500/30">${u.role}</span></td>
+                        <td class="p-4"><span class="bg-purple-500/20 text-purple-400 px-2 py-1 rounded-md text-xs font-bold border border-purple-500/30">${u.shift}</span></td>
+                        <td class="p-4"><span class="bg-green-500/20 text-green-400 px-2 py-1 rounded-md text-xs font-bold border border-green-500/30"><i class="fa-solid fa-check-circle mr-1"></i>Aktif</span></td>
+                        <td class="p-4"><button onclick="deleteUser('${d.id}')" class="text-red-400 hover:text-red-300 transition text-sm"><i class="fa-solid fa-trash mr-1"></i>Hapus</button></td>
+                    </tr>`;
+                    htmlShift += `<option value="${d.id}">${u.nama} (${u.role}) - Shift: ${u.shift}</option>`;
+                });
 
-            invSnap.forEach(d => {
-                const u = d.data();
-                htmlStaf += `<tr class="border-b border-slate-800 hover:bg-slate-800/40 transition opacity-50">
-                    <td class="p-4 font-medium text-white">${u.nama}</td>
-                    <td class="p-4 text-slate-400">${u.email}</td>
-                    <td class="p-4"><span class="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-md text-xs font-bold border border-yellow-500/30">${u.role}</span></td>
-                    <td class="p-4 text-slate-500 italic">Belum Register</td>
-                    <td class="p-4"><button onclick="deleteInvitation('${d.id}')" class="text-red-400 hover:text-red-300 transition"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>`;
-            });
+                invSnap.forEach(d => {
+                    const u = d.data();
+                    htmlStaf += `<tr class="border-b border-slate-800 hover:bg-yellow-900/20 transition">
+                        <td class="p-4 font-medium text-yellow-300">${u.nama}</td>
+                        <td class="p-4 text-slate-400">${u.email}</td>
+                        <td class="p-4"><span class="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-md text-xs font-bold border border-yellow-500/30">${u.role}</span></td>
+                        <td class="p-4 text-slate-500 italic">-</td>
+                        <td class="p-4"><span class="bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-md text-xs font-bold border border-yellow-500/30 animate-pulse"><i class="fa-solid fa-hourglass-half mr-1"></i>Belum Register</span></td>
+                        <td class="p-4"><button onclick="deleteInvitation('${d.id}')" class="text-red-400 hover:text-red-300 transition text-sm"><i class="fa-solid fa-trash mr-1"></i>Batalkan</button></td>
+                    </tr>`;
+                });
 
-            document.getElementById('stafTableBody').innerHTML = htmlStaf || '<tr><td colspan="5" class="text-center p-8 text-slate-500">Belum ada staf</td></tr>';
-            document.getElementById('shiftStafSelect').innerHTML = htmlShift || '<option value="">Tidak ada staf aktif</option>';
+                document.getElementById('stafTableBody').innerHTML = htmlStaf || '<tr><td colspan="6" class="text-center p-8 text-slate-500"><i class="fa-solid fa-users text-2xl mb-2 block"></i>Belum ada staf terdaftar</td></tr>';
+                document.getElementById('shiftStafSelect').innerHTML = htmlShift || '<option value="">Tidak ada staf aktif</option>';
+            } catch(e) {
+                showToast("Gagal memuat daftar staf: " + e.message, "error");
+            }
         }
 
         window.deleteUser = async (id) => {
-            if(confirm("Hapus data staf ini? (Akun Auth-nya tidak terhapus otomatis)")) {
+            if(!confirm("Hapus data staf ini dari database? (Akun Firebase Auth-nya tidak otomatis terhapus)")) return;
+            try {
                 await deleteDoc(doc(db, "users", id));
+                showToast("Staf berhasil dihapus dari database.", "success");
                 loadStafList();
+            } catch(e) {
+                showToast("Gagal menghapus: " + e.message, "error");
             }
-        }
+        };
 
         window.deleteInvitation = async (id) => {
-            if(confirm("Batalkan undangan staf ini?")) {
+            if(!confirm("Batalkan undangan staf ini?")) return;
+            try {
                 await deleteDoc(doc(db, "invitations", id));
+                showToast("Undangan berhasil dibatalkan.", "success");
                 loadStafList();
+            } catch(e) {
+                showToast("Gagal membatalkan: " + e.message, "error");
             }
-        }
+        };
 
         window.updateShift = async () => {
             const id = document.getElementById('shiftStafSelect').value;
             const shift = document.getElementById('shiftTypeSelect').value;
-            if(!id) return alert("Tidak ada staf yang dipilih");
-            await updateDoc(doc(db, "users", id), { shift });
-            alert("Shift berhasil diubah!");
-            loadStafList();
+            if(!id) { showToast("Tidak ada staf yang dipilih!", "warning"); return; }
+            try {
+                await updateDoc(doc(db, "users", id), { shift: shift });
+                showToast("Shift berhasil diubah ke " + shift + "!", "success");
+                loadStafList();
+            } catch(e) {
+                showToast("Gagal mengubah shift: " + e.message, "error");
+            }
         };
 
     </script>
