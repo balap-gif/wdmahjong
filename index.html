@@ -2,16 +2,320 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Dashboard Izin Keluar Staf | Hokbentoto</title>
-    <!-- Firebase SDKs -->
-    <script type="module">
-        // Import Firebase SDKs
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, query, where, addDoc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updatePassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Izin Keluar Staf</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('https://cdn.areabermain.club/assets/cdn/az5/2026/03/02/20260302/997f37bf3bc90016a5e32ae52406c5c4/background-web-hokbentoto-1.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: 'Inter', sans-serif;
+        }
+        /* Dark overlay agar teks mudah dibaca dan glassmorphism menyatu */
+        .bg-overlay {
+            background-color: rgba(2, 6, 23, 0.7); 
+            backdrop-filter: blur(10px);
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        .sidebar-btn.active {
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0.2) 0%, transparent 100%);
+            border-left: 4px solid #38bdf8;
+            color: #38bdf8;
+        }
+        .sidebar-btn {
+            border-left: 4px solid transparent;
+            transition: all 0.2s;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 3px; }
+    </style>
+</head>
+<body class="min-h-screen text-white flex">
+
+    <!-- LOGIN SECTION -->
+    <div id="loginSection" class="flex items-center justify-center min-h-screen w-full bg-overlay">
+        <div class="glass-card p-8 rounded-2xl w-full max-w-md">
+            <div class="text-center mb-6">
+                <i class="fa-solid fa-shield-halved text-sky-400 text-4xl mb-3"></i>
+                <h2 class="text-2xl font-bold text-white">Login Dashboard</h2>
+                <p class="text-slate-400 text-sm">Masuk menggunakan Gmail yang terdaftar</p>
+            </div>
+            <input type="email" id="loginEmail" placeholder="Email Staf" class="w-full p-3 mb-3 rounded-lg bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-sky-500 transition">
+            <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3 mb-4 rounded-lg bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-sky-500 transition">
+            <button onclick="login()" class="w-full bg-sky-600 hover:bg-sky-500 p-3 rounded-lg font-bold transition shadow-lg shadow-sky-500/20">Masuk</button>
+            <div class="flex justify-end mt-3">
+                <button onclick="showRegister()" class="text-xs text-slate-400 hover:text-sky-400 transition">Belum punya akun? Daftar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REGISTER SECTION -->
+    <div id="registerSection" class="hidden flex items-center justify-center min-h-screen w-full bg-overlay">
+        <div class="glass-card p-8 rounded-2xl w-full max-w-md">
+            <div class="text-center mb-6">
+                <i class="fa-solid fa-user-plus text-emerald-400 text-4xl mb-3"></i>
+                <h2 class="text-2xl font-bold text-white">Daftar Akun</h2>
+                <p class="text-slate-400 text-sm">Hanya Gmail yang didaftarkan Leader yang bisa masuk</p>
+            </div>
+            <input type="email" id="regEmail" placeholder="Gmail Anda" class="w-full p-3 mb-3 rounded-lg bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-emerald-500 transition">
+            <input type="password" id="regPassword" placeholder="Buat Password" class="w-full p-3 mb-4 rounded-lg bg-slate-800/80 border border-slate-700 focus:outline-none focus:border-emerald-500 transition">
+            <button onclick="register()" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded-lg font-bold transition shadow-lg shadow-emerald-500/20">Daftar</button>
+            <div class="flex justify-end mt-3">
+                <button onclick="showLogin()" class="text-xs text-slate-400 hover:text-sky-400 transition">Sudah punya akun? Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD SECTION -->
+    <div id="dashboardSection" class="hidden w-full min-h-screen flex">
         
-        // Konfigurasi Firebase
+        <!-- Sidebar -->
+        <div class="w-64 min-h-screen glass-card border-r border-slate-700 flex flex-col justify-between p-4">
+            <div>
+                <div class="text-center border-b border-slate-700 pb-4 mb-4">
+                    <h1 class="text-xl font-bold text-sky-400 tracking-wide">PANEL IZIN</h1>
+                    <p id="sideRole" class="text-xs text-slate-400 mt-1 uppercase font-bold tracking-widest"></p>
+                </div>
+                
+                <div class="flex flex-col gap-1">
+                    <button onclick="showTab('absen')" id="btn-absen" class="sidebar-btn active text-left p-3 rounded-lg hover:bg-slate-800/50 transition flex items-center gap-3">
+                        <i class="fa-solid fa-fingerprint w-5 text-center"></i> Absen Masuk
+                    </button>
+                    <button onclick="showTab('izin')" id="btn-izin" class="sidebar-btn text-left p-3 rounded-lg hover:bg-slate-800/50 transition flex items-center gap-3">
+                        <i class="fa-solid fa-right-from-bracket w-5 text-center"></i> Izin Keluar
+                    </button>
+                    <button onclick="showTab('riwayat')" id="btn-riwayat" class="sidebar-btn text-left p-3 rounded-lg hover:bg-slate-800/50 transition flex items-center gap-3">
+                        <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Riwayat Izin
+                    </button>
+                    <button onclick="showTab('jadwal')" id="btn-jadwal" class="sidebar-btn text-left p-3 rounded-lg hover:bg-slate-800/50 transition flex items-center gap-3">
+                        <i class="fa-solid fa-calendar-days w-5 text-center"></i> Jadwal & Shift
+                    </button>
+                    
+                    <div id="menuLeader" class="hidden">
+                        <div class="border-t border-slate-700 my-3"></div>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest mb-2 px-3">Leader Only</p>
+                        <button onclick="showTab('kelola')" id="btn-kelola" class="sidebar-btn text-left p-3 rounded-lg hover:bg-slate-800/50 transition flex items-center gap-3 text-yellow-400">
+                            <i class="fa-solid fa-users-gear w-5 text-center"></i> Kelola Staf
+                        </button>
+                        <button onclick="showTab('kemarin')" id="btn-kemarin" class="sidebar-btn text-left p-3 rounded-lg hover:bg-slate-800/50 transition flex items-center gap-3 text-emerald-400">
+                            <i class="fa-solid fa-database w-5 text-center"></i> Data Kemarin
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-700 pt-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center font-bold" id="sideAvatar">?</div>
+                    <div>
+                        <p id="sideName" class="font-semibold text-sm">Nama Staf</p>
+                        <p id="sideEmail" class="text-[10px] text-slate-400 truncate w-36">email@gmail.com</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="changePassModal()" class="flex-1 text-xs bg-slate-700 hover:bg-slate-600 p-2 rounded transition"><i class="fa-solid fa-key"></i> Password</button>
+                    <button onclick="logout()" class="flex-1 text-xs bg-red-700 hover:bg-red-600 p-2 rounded transition"><i class="fa-solid fa-sign-out-alt"></i> Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 bg-overlay min-h-screen overflow-y-auto p-8">
+            
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 id="pageTitle" class="text-3xl font-bold text-white">Dashboard</h2>
+                    <p id="pageDesc" class="text-slate-400 text-sm">Selamat datang kembali</p>
+                </div>
+                <div id="liveClock" class="text-2xl font-mono text-sky-400 font-bold"></div>
+            </div>
+
+            <!-- Tabs Content -->
+            <div id="tab-absen" class="tab-content">
+                <div class="glass-card p-8 rounded-2xl max-w-2xl">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-fingerprint text-sky-400"></i> Absen Masuk Kerja</h3>
+                    <p class="text-slate-400 mb-6 text-sm">Wajib absen terlebih dahulu sebelum dapat mengajukan izin keluar.</p>
+                    <button id="btnAbsenMasuk" onclick="absenMasuk()" class="w-full md:w-auto bg-sky-600 hover:bg-sky-500 px-8 py-4 rounded-xl font-bold transition shadow-lg shadow-sky-500/20 text-lg">
+                        <i class="fa-solid fa-check-circle mr-2"></i> Absen Masuk Sekarang
+                    </button>
+                    <div id="absenStatus" class="mt-6 text-lg font-semibold hidden"></div>
+                </div>
+            </div>
+
+            <div id="tab-izin" class="tab-content hidden">
+                <div id="izinLeaderWarn" class="hidden glass-card p-8 rounded-2xl border-l-4 border-yellow-500 mb-6">
+                    <p class="text-yellow-400 font-bold"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Leader tidak diizinkan mengisi jam keluar.</p>
+                </div>
+                
+                <div id="izinFormArea" class="glass-card p-8 rounded-2xl max-w-3xl">
+                    <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-right-from-bracket text-sky-400"></i> Pilih Tujuan Izin Keluar</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <button onclick="ajukanIzin('merokok')" class="bg-gradient-to-br from-blue-800 to-blue-900 hover:from-blue-700 hover:to-blue-800 p-6 rounded-xl transition group border border-blue-700">
+                            <i class="fa-solid fa-smoking text-4xl mb-3 text-blue-300 group-hover:text-white transition"></i>
+                            <h4 class="text-xl font-bold">Izin Merokok</h4>
+                            <p class="text-blue-300 text-sm mt-1">Durasi Maksimal: 20 Menit</p>
+                        </button>
+                        <button onclick="ajukanIzin('tidak_merokok')" class="bg-gradient-to-br from-purple-800 to-purple-900 hover:from-purple-700 hover:to-purple-800 p-6 rounded-xl transition group border border-purple-700">
+                            <i class="fa-solid fa-mug-hot text-4xl mb-3 text-purple-300 group-hover:text-white transition"></i>
+                            <h4 class="text-xl font-bold">Izin Non-Rokok</h4>
+                            <p class="text-purple-300 text-sm mt-1">Durasi Maksimal: 15 Menit</p>
+                        </button>
+                    </div>
+                    
+                    <div id="izinActiveStatus" class="hidden bg-slate-800 border border-sky-500 p-6 rounded-xl text-center">
+                        <!-- Akan diisi JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-riwayat" class="tab-content hidden">
+                <div class="glass-card p-8 rounded-2xl">
+                    <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-sky-400"></i> Riwayat Izin Hari Ini</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-slate-700 text-sky-400 text-sm">
+                                    <th class="p-4">Nama Staf</th>
+                                    <th class="p-4">Panel</th>
+                                    <th class="p-4">Tujuan</th>
+                                    <th class="p-4">Jam Keluar</th>
+                                    <th class="p-4">Batas Waktu</th>
+                                    <th class="p-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riwayatBody" class="text-slate-300 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-jadwal" class="tab-content hidden">
+                <div class="glass-card p-8 rounded-2xl mb-6">
+                    <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-calendar-days text-sky-400"></i> Jadwal Jobdeks & Shift</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="bg-sky-900/40 border border-sky-800 p-4 rounded-xl text-center">
+                            <h4 class="font-bold text-sky-300 mb-2">PAGI</h4>
+                            <p class="text-sm text-slate-300">08:00 - 16:00</p>
+                        </div>
+                        <div class="bg-orange-900/40 border border-orange-800 p-4 rounded-xl text-center">
+                            <h4 class="font-bold text-orange-300 mb-2">SORE</h4>
+                            <p class="text-sm text-slate-300">16:00 - 23:00</p>
+                        </div>
+                        <div class="bg-indigo-900/40 border border-indigo-800 p-4 rounded-xl text-center">
+                            <h4 class="font-bold text-indigo-300 mb-2">MALAM</h4>
+                            <p class="text-sm text-slate-300">23:00 - 08:00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="shiftManagerArea" class="hidden glass-card p-8 rounded-2xl border-t-4 border-yellow-500">
+                    <h3 class="text-xl font-bold mb-4 text-yellow-400 flex items-center gap-2"><i class="fa-solid fa-pen-ruler"></i> Atur Shift Staf</h3>
+                    <div class="flex gap-4 items-end">
+                        <div class="flex-1">
+                            <label class="text-xs text-slate-400 block mb-1">Pilih Staf</label>
+                            <select id="shiftStafSelect" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg"></select>
+                        </div>
+                        <div class="w-48">
+                            <label class="text-xs text-slate-400 block mb-1">Pilih Shift</label>
+                            <select id="shiftTypeSelect" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg">
+                                <option value="Pagi">Pagi</option>
+                                <option value="Sore">Sore</option>
+                                <option value="Malam">Malam</option>
+                            </select>
+                        </div>
+                        <button onclick="updateShift()" class="bg-yellow-600 hover:bg-yellow-500 px-6 py-3 rounded-lg font-bold transition">Update</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-kelola" class="tab-content hidden">
+                <div class="glass-card p-8 rounded-2xl border-t-4 border-yellow-500 mb-6">
+                    <h3 class="text-xl font-bold mb-6 text-yellow-400 flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> Tambah Staf Baru</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                        <div class="md:col-span-1">
+                            <label class="text-xs text-slate-400 block mb-1">Nama</label>
+                            <input type="text" id="addNama" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg" placeholder="Nama Lengkap">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="text-xs text-slate-400 block mb-1">Gmail Staf</label>
+                            <input type="email" id="addEmail" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg" placeholder="staf@gmail.com">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Panel</label>
+                            <select id="addRole" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg">
+                                <option value="CS LINE">CS LINE</option>
+                                <option value="CS LiveChat">CS LiveChat</option>
+                                <option value="KKS">KKS</option>
+                                <option value="KASIR">KASIR</option>
+                            </select>
+                        </div>
+                        <button onclick="tambahStaf()" class="bg-yellow-600 hover:bg-yellow-500 p-3 rounded-lg font-bold transition h-[46px]">Tambahkan</button>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 rounded-2xl">
+                    <h3 class="text-xl font-bold mb-6 flex items-center gap-2"><i class="fa-solid fa-users text-sky-400"></i> Daftar Semua Staf</h3>
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-slate-700 text-sky-400 text-sm">
+                                <th class="p-4">Nama</th>
+                                <th class="p-4">Gmail</th>
+                                <th class="p-4">Panel</th>
+                                <th class="p-4">Shift</th>
+                                <th class="p-4">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stafTableBody" class="text-slate-300 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-kemarin" class="tab-content hidden">
+                <div class="glass-card p-8 rounded-2xl border-t-4 border-emerald-500">
+                    <h3 class="text-xl font-bold mb-6 text-emerald-400 flex items-center gap-2"><i class="fa-solid fa-database"></i> Data Kemarin</h3>
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-slate-700 text-emerald-400 text-sm">
+                                <th class="p-4">Nama</th>
+                                <th class="p-4">Panel</th>
+                                <th class="p-4">Tujuan</th>
+                                <th class="p-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kemarinBody" class="text-slate-300 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GANTI PASSWORD -->
+    <div id="passModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div class="glass-card p-8 rounded-2xl w-96">
+            <h3 class="text-xl font-bold mb-4">Ganti Password</h3>
+            <input type="password" id="newPass" placeholder="Password Baru (Min 6 karakter)" class="w-full bg-slate-800 border border-slate-700 p-3 rounded-lg mb-4">
+            <div class="flex gap-3">
+                <button onclick="saveNewPass()" class="flex-1 bg-sky-600 p-3 rounded-lg font-bold">Simpan</button>
+                <button onclick="closePassModal()" class="flex-1 bg-slate-700 p-3 rounded-lg font-bold">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE & LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, addDoc, updateDoc, onSnapshot, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyBAxo25KJy_XTIZBGYOh_XMTcn0w73yiYM",
             authDomain: "izinstaf-82315.firebaseapp.com",
@@ -22,609 +326,314 @@
             measurementId: "G-25WVSLDCK4"
         };
 
-        // Inisialisasi
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // EXPOSE GLOBAL untuk akses dari fungsi inline
-        window.db = db;
-        window.auth = auth;
-        window.Timestamp = Timestamp;
-        window.getDocs = getDocs;
-        window.doc = doc;
-        window.setDoc = setDoc;
-        window.getDoc = getDoc;
-        window.updateDoc = updateDoc;
-        window.collection = collection;
-        window.query = query;
-        window.where = where;
-        window.addDoc = addDoc;
-        window.deleteDoc = deleteDoc;
-        window.signOut = signOut;
-        window.updatePassword = updatePassword;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-    </script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
-        }
-        body {
-            min-height: 100vh;
-            background: url('https://cdn.areabermain.club/assets/cdn/az5/2026/03/02/20260302/997f37bf3bc90016a5e32ae52406c5c4/background-web-hokbentoto-1.jpg') no-repeat center center fixed;
-            background-size: cover;
-            position: relative;
-            backdrop-filter: brightness(0.9) blur(2px);
-        }
-        /* Overlay semi-transparan agar teks nyaman */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.55);
-            z-index: 0;
-        }
-        .container, .login-wrapper, .dashboard-panel {
-            position: relative;
-            z-index: 2;
-        }
-        /* Login Card */
-        .login-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .glass-card {
-            background: rgba(20, 20, 30, 0.75);
-            backdrop-filter: blur(12px);
-            border-radius: 32px;
-            padding: 32px 28px;
-            width: 100%;
-            max-width: 450px;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,215,0,0.3);
-            transition: 0.3s;
-            color: white;
-        }
-        .glass-card h2 {
-            text-align: center;
-            margin-bottom: 24px;
-            font-weight: 600;
-            letter-spacing: 1px;
-            color: #FFE6A7;
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 12px 16px;
-            background: rgba(255,255,245,0.15);
-            border: 1px solid rgba(255,215,0,0.5);
-            border-radius: 40px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.2s;
-        }
-        .input-group input:focus {
-            border-color: #FFD966;
-            background: rgba(0,0,0,0.5);
-        }
-        button {
-            background: linear-gradient(135deg, #F9B23F, #FF8C00);
-            border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 40px;
-            font-weight: bold;
-            font-size: 1rem;
-            color: #1e1e2a;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-top: 8px;
-        }
-        button:hover {
-            transform: scale(0.98);
-            background: linear-gradient(135deg, #FFA41E, #F57C00);
-        }
-        .logout-btn {
-            background: rgba(200,60,50,0.8);
-            margin-top: 12px;
-            color: white;
-        }
-        .dashboard-panel {
-            display: none;
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            border-radius: 60px;
-            padding: 10px 25px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-        .user-info {
-            font-weight: bold;
-            background: #FFA50030;
-            padding: 6px 16px;
-            border-radius: 40px;
-            color: #FFE0A3;
-        }
-        .panel-grid {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        .sidebar-nav {
-            flex: 1;
-            min-width: 220px;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(10px);
-            border-radius: 28px;
-            padding: 20px 10px;
-            height: fit-content;
-        }
-        .sidebar-nav button {
-            background: rgba(255,140,0,0.3);
-            margin: 8px 0;
-            border-radius: 40px;
-            text-align: center;
-            font-weight: 500;
-        }
-        .main-content {
-            flex: 4;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(12px);
-            border-radius: 28px;
-            padding: 20px;
-            min-height: 70vh;
-        }
-        .card-title {
-            font-size: 1.5rem;
-            border-left: 5px solid #FFB347;
-            padding-left: 16px;
-            margin-bottom: 20px;
-            color: #FFE6B3;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            color: #f0f0f0;
-        }
-        th, td {
-            padding: 12px 8px;
-            border-bottom: 1px solid rgba(255,200,100,0.3);
-            text-align: left;
-        }
-        th {
-            background: #FF8C0033;
-            color: #FFD966;
-        }
-        .badge {
-            background: #FF5722;
-            padding: 4px 10px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-        .btn-small {
-            padding: 5px 12px;
-            width: auto;
-            margin: 2px;
-            font-size: 0.8rem;
-        }
-        .flex-form {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        .flex-form input, .flex-form select {
-            flex: 1;
-            padding: 8px 12px;
-            border-radius: 40px;
-            background: #2c2c3a;
-            border: none;
-            color: white;
-        }
-        .warning {
-            color: #FFB347;
-        }
-        hr {
-            border-color: #FFB34740;
-            margin: 15px 0;
-        }
-        @media (max-width: 700px) {
-            .panel-grid { flex-direction: column; }
-        }
-        .edit-mode {
-            border-left: 4px solid gold;
-        }
-    </style>
-</head>
-<body>
-<div class="login-wrapper" id="loginWrapper">
-    <div class="glass-card">
-        <h2>✨ IZIN KELUAR STAFF ✨</h2>
-        <div class="input-group">
-            <label>📧 Email / Nama Staf</label>
-            <input type="text" id="loginEmail" placeholder="contoh@email.com atau nama staf">
-        </div>
-        <div class="input-group">
-            <label>🔒 Password</label>
-            <input type="password" id="loginPassword" placeholder="********">
-        </div>
-        <button id="loginBtn">MASUK DASHBOARD</button>
-        <p style="font-size:12px; text-align:center; margin-top:16px;">*Leader wajib daftarkan staf via panel leader</p>
-    </div>
-</div>
+        // KREDENSIAL LEADER SPESIAL
+        const LEADER_EMAILS = ["hendrysalim260@gmail.com", "haris789smb@gmail.com"];
 
-<div class="dashboard-panel" id="dashboardPanel">
-    <div class="top-bar">
-        <div><span style="font-weight:bold;">🔥 Hokbentoto Izin Keluar</span></div>
-        <div class="user-info" id="userRoleDisplay">Role: -</div>
-        <button id="logoutBtnGlobal" class="logout-btn" style="width:auto; padding:6px 20px;">🚪 Keluar</button>
-    </div>
-    <div class="panel-grid">
-        <div class="sidebar-nav" id="sidebarNav"></div>
-        <div class="main-content" id="mainContent"></div>
-    </div>
-</div>
+        let currentUserData = null;
+        let currentUserId = null;
 
-<script type="module">
-    // ======================== GLOBAL STATE ========================
-    let currentUser = null;      // { uid, email, role, name, displayName }
-    let allStaffList = [];       // untuk keperluan edit, tampilan
-    let izinRecords = [];        // history izin
-    
-    // fungsi helper simpan ke firestore
-    async function loadStaffData() {
-        if (!window.db) return;
-        const snapshot = await getDocs(collection(db, "staff"));
-        allStaffList = [];
-        snapshot.forEach(docSnap => {
-            allStaffList.push({ id: docSnap.id, ...docSnap.data() });
+        // Live Clock
+        setInterval(() => {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+            const el = document.getElementById('liveClock');
+            if(el) el.innerText = timeStr;
+        }, 1000);
+
+        // UI Switch Login/Register
+        window.showRegister = () => { document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.remove('hidden'); };
+        window.showLogin = () => { document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loginSection').classList.remove('hidden'); };
+
+        // AUTH LOGIC
+        window.login = async () => {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPassword').value;
+            try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Login Gagal: " + e.message); }
+        };
+
+        window.register = async () => {
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPassword').value;
+            if(!email || !pass) return alert("Isi email dan password!");
+            
+            // Cek apakah email terdaftar sebagai staf oleh Leader (kecuali Leader sendiri)
+            const userSnap = await getDocs(query(collection(db, "users"), where("email", "==", email)));
+            if(userSnap.empty && !LEADER_EMAILS.includes(email)) {
+                return alert("Gmail Anda belum didaftarkan oleh Leader. Hubungi Leader.");
+            }
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, pass);
+            } catch (e) { alert("Registrasi Gagal: " + e.message); }
+        };
+
+        window.logout = () => signOut(auth);
+
+        window.changePassModal = () => document.getElementById('passModal').classList.remove('hidden');
+        window.closePassModal = () => document.getElementById('passModal').classList.add('hidden');
+        window.saveNewPass = async () => {
+            const p = document.getElementById('newPass').value;
+            if(p.length < 6) return alert("Minimal 6 karakter");
+            try { await updatePassword(auth.currentUser, p); alert("Berubah!"); window.closePassModal(); } catch(e) { alert("Gagal, logout lalu login ulang: "+e.message); }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('registerSection').classList.add('hidden');
+                document.getElementById('dashboardSection').classList.remove('hidden');
+
+                // Cek & Set Role
+                const userSnap = await getDocs(query(collection(db, "users"), where("email", "==", user.email)));
+                let isLeader = LEADER_EMAILS.includes(user.email);
+
+                if (userSnap.empty) {
+                    // Jika data tidak ada di DB, tapi email adalah Leader -> Buat otomatis
+                    currentUserData = { nama: "LEADER", email: user.email, role: "LEADER", shift: "Pagi" };
+                    await setDoc(doc(db, "users", user.uid), currentUserData);
+                } else {
+                    userSnap.forEach(d => { currentUserData = d.data(); currentUserData.id = d.id; });
+                    if(isLeader && currentUserData.role !== 'LEADER') {
+                        await updateDoc(doc(db, "users", currentUserData.id), {role: 'LEADER'});
+                        currentUserData.role = 'LEADER';
+                    }
+                }
+
+                // Set UI Sidebar
+                document.getElementById('sideName').innerText = currentUserData.nama;
+                document.getElementById('sideEmail').innerText = currentUserData.email;
+                document.getElementById('sideAvatar').innerText = currentUserData.nama.charAt(0);
+                document.getElementById('sideRole').innerText = currentUserData.role;
+
+                setupAccess();
+                checkAbsen();
+                listenPermits();
+                loadStafList();
+                showTab('absen');
+            } else {
+                document.getElementById('loginSection').classList.remove('hidden');
+                document.getElementById('dashboardSection').classList.add('hidden');
+                currentUserData = null;
+            }
         });
-    }
-    
-    async function loadIzinHistory() {
-        const snap = await getDocs(collection(db, "izinKeluar"));
-        izinRecords = [];
-        snap.forEach(d => izinRecords.push({ id: d.id, ...d.data() }));
-        izinRecords.sort((a,b) => b.timestamp?.toDate?.() - a.timestamp?.toDate?.());
-    }
-    
-    // cek terlambat (lebih dari durasi)
-    function isLate(izin) {
-        if (!izin.keluarTime || !izin.tujuan) return false;
-        const durasiMax = izin.tujuan === "Izin Merokok" ? 20 : 15;
-        const keluar = izin.keluarTime.toDate ? izin.keluarTime.toDate() : new Date(izin.keluarTime);
-        const sekarang = new Date();
-        const diffMenit = (sekarang - keluar) / (1000 * 60);
-        return diffMenit > durasiMax && !izin.kembaliDiakui;
-    }
-    
-    async function renderDashboard(activeTab = "izinKeluar") {
-        if (!currentUser) return;
-        // Sidebar sesuai role
-        let sidebarHtml = '';
-        if (currentUser.role === 'LEADER') {
-            sidebarHtml = `
-                <button data-tab="izinKeluar">📋 Izin Keluar / Masuk</button>
-                <button data-tab="riwayat">📜 Riwayat Izin</button>
-                <button data-tab="dataKemarin">📆 Data Kemarin</button>
-                <button data-tab="kelolaStaff">👥 Kelola Staff</button>
-                <button data-tab="jobdeks">📋 Jobdeks & Shift</button>
-                <button data-tab="gantiPassword">🔐 Ganti Password</button>
-            `;
-        } else if (currentUser.role === 'CS LINE') {
-            sidebarHtml = `
-                <button data-tab="izinKeluar">🚬 Izin Keluar / Masuk</button>
-                <button data-tab="riwayat">📜 Riwayat Izin</button>
-                <button data-tab="dataKemarin">📆 Data Kemarin</button>
-                <button data-tab="jobdeks">📋 Jobdeks & Shift</button>
-                <button data-tab="gantiPassword">🔐 Ganti Password</button>
-            `;
-        } else if (currentUser.role === 'CS LiveChat' || currentUser.role === 'KKS' || currentUser.role === 'KASIR') {
-            sidebarHtml = `
-                <button data-tab="izinKeluar">🚬 Izin Keluar / Masuk</button>
-                <button data-tab="riwayat">📜 Riwayat Izin</button>
-                <button data-tab="jobdeks">📋 Jobdeks & Shift</button>
-                <button data-tab="gantiPassword">🔐 Ganti Password</button>
-            `;
+
+        function setupAccess() {
+            const role = currentUserData.role;
+            document.getElementById('menuLeader').classList.add('hidden');
+            document.getElementById('izinLeaderWarn').classList.add('hidden');
+            document.getElementById('izinFormArea').classList.remove('hidden');
+            document.getElementById('shiftManagerArea').classList.add('hidden');
+
+            if(role === 'LEADER') {
+                document.getElementById('menuLeader').classList.remove('hidden');
+                document.getElementById('izinLeaderWarn').classList.remove('hidden');
+                document.getElementById('izinFormArea').classList.add('hidden');
+                document.getElementById('shiftManagerArea').classList.remove('hidden');
+            } else if(role === 'CS LINE') {
+                document.getElementById('menuLeader').classList.remove('hidden'); // Akses menu kemarin & kelola
+                document.getElementById('shiftManagerArea').classList.remove('hidden');
+            }
         }
-        document.getElementById('sidebarNav').innerHTML = sidebarHtml;
-        document.querySelectorAll('[data-tab]').forEach(btn => {
-            btn.addEventListener('click', () => renderDashboard(btn.dataset.tab));
-        });
-        
-        // render konten
-        const main = document.getElementById('mainContent');
-        await loadStaffData();
-        await loadIzinHistory();
-        
-        if (activeTab === 'izinKeluar') await renderIzinKeluar(main);
-        else if (activeTab === 'riwayat') await renderRiwayat(main);
-        else if (activeTab === 'dataKemarin') await renderDataKemarin(main);
-        else if (activeTab === 'kelolaStaff' && currentUser.role === 'LEADER') await renderKelolaStaff(main);
-        else if (activeTab === 'jobdeks') await renderJobdeksShift(main);
-        else if (activeTab === 'gantiPassword') await renderGantiPassword(main);
-        else await renderIzinKeluar(main);
-    }
-    
-    async function renderIzinKeluar(container) {
-        if (currentUser.role === 'LEADER') {
-            container.innerHTML = `<div class="card-title">👑 LEADER - Monitoring Izin Staff</div>
-            <p style="margin-bottom:10px;">Leader tidak dapat mengisi izin keluar, hanya melihat daftar staf yang sedang izin & terlambat.</p>
-            <table><tr><th>Nama</th><th>Tujuan</th><th>Jam Keluar</th><th>Status</th><th>Aksi</th></tr>
-            ${izinRecords.filter(iz => !iz.kembaliDiakui).map(iz => {
-                const staff = allStaffList.find(s => s.uid === iz.uidStaf) || { name: iz.namaStaf || "Unknown" };
-                const late = isLate(iz);
-                return `<tr><td>${staff.name}</td><td>${iz.tujuan}</td><td>${iz.keluarTime?.toDate?.()?.toLocaleTimeString() || '-'}</td>
-                <td>${late ? '<span class="badge">⚠️ TERLAMBAT</span>' : '⏳ Sedang Izin'}</td>
-                <td><button class="btn-small" data-kembali="${iz.id}">Kembalikan (Tutup Izin)</button></td></tr>`;
-            }).join('')}</table>`;
-            document.querySelectorAll('[data-kembali]').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const idIzin = btn.dataset.kembali;
-                    await updateDoc(doc(db, "izinKeluar", idIzin), { kembaliDiakui: true, waktuKembali: Timestamp.now() });
-                    await loadIzinHistory();
-                    renderDashboard('izinKeluar');
+
+        window.showTab = (tab) => {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-'+tab).classList.remove('hidden');
+            document.getElementById('btn-'+tab).classList.add('active');
+
+            if(tab === 'kemarin') loadKemarin();
+        };
+
+        // ABSEN
+        window.absenMasuk = async () => {
+            const today = new Date().toISOString().split('T')[0];
+            await setDoc(doc(db, "absensi", currentUserId+"_"+today), {
+                userId: currentUserId, nama: currentUserData.nama, role: currentUserData.role, tanggal: today, status: "Hadir"
+            });
+            checkAbsen();
+        };
+
+        async function checkAbsen() {
+            const today = new Date().toISOString().split('T')[0];
+            const q = query(collection(db, "absensi"), where("userId", "==", currentUserId), where("tanggal", "==", today));
+            const snap = await getDocs(q);
+            const btn = document.getElementById('btnAbsenMasuk');
+            const stat = document.getElementById('absenStatus');
+            
+            if(snap.empty) {
+                btn.disabled = false; btn.classList.remove('opacity-50');
+                stat.classList.add('hidden');
+            } else {
+                btn.disabled = true; btn.classList.add('opacity-50');
+                stat.classList.remove('hidden');
+                stat.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 mr-2"></i> Anda sudah absen hari ini.';
+            }
+        }
+
+        // IZIN KELUAR
+        window.ajukanIzin = async (tipe) => {
+            const today = new Date().toISOString().split('T')[0];
+            const q = query(collection(db, "absensi"), where("userId", "==", currentUserId), where("tanggal", "==", today));
+            const snap = await getDocs(q);
+            if(snap.empty) return alert("Anda belum absen masuk!");
+
+            const qActive = query(collection(db, "permits"), where("userId", "==", currentUserId), where("status", "==", "aktif"));
+            const snapActive = await getDocs(qActive);
+            if(!snapActive.empty) return alert("Anda sedang dalam izin keluar!");
+
+            const durasi = tipe === 'merokok' ? 20 : 15;
+            const start = new Date();
+            const end = new Date(start.getTime() + durasi * 60000);
+
+            await addDoc(collection(db, "permits"), {
+                userId: currentUserId, nama: currentUserData.nama, role: currentUserData.role,
+                tipe, durasi, jamKeluar: start.toLocaleTimeString('id-ID'), batasKembali: end.toLocaleTimeString('id-ID'),
+                endTimeStamp: end, status: "aktif", tanggal: today
+            });
+        };
+
+        window.kembaliIzin = async (id) => {
+            await updateDoc(doc(db, "permits", id), { status: 'kembali' });
+        };
+
+        function listenPermits() {
+            const today = new Date().toISOString().split('T')[0];
+            const q = query(collection(db, "permits"), where("tanggal", "==", today));
+            
+            onSnapshot(q, (snap) => {
+                let html = '';
+                const now = new Date();
+                
+                snap.forEach(d => {
+                    const p = d.data();
+                    let statusHtml = '';
+                    
+                    if(p.status === 'aktif') {
+                        if(now > p.endTimeStamp.toDate()) {
+                            updateDoc(doc(db, "permits", d.id), { status: 'lewat' });
+                            statusHtml = `<span class="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs font-bold">LEWAT WAKTU</span>`;
+                        } else {
+                            statusHtml = `<span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded text-xs font-bold">Sedang Keluar</span>`;
+                        }
+                    } else if(p.status === 'lewat') {
+                        statusHtml = `<span class="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs font-bold">LEWAT WAKTU</span>`;
+                    } else {
+                        statusHtml = `<span class="bg-slate-500/20 text-slate-400 px-2 py-1 rounded text-xs font-bold">Kembali</span>`;
+                    }
+
+                    html += `<tr class="border-b border-slate-800 hover:bg-slate-800/40">
+                        <td class="p-4 font-medium text-white">${p.nama}</td>
+                        <td class="p-4">${p.role}</td>
+                        <td class="p-4">${p.tipe === 'merokok' ? '🚬 Merokok' : '☕ Non-Rokok'}</td>
+                        <td class="p-4">${p.jamKeluar}</td>
+                        <td class="p-4">${p.batasKembali}</td>
+                        <td class="p-4 flex items-center gap-2">
+                            ${statusHtml}
+                            ${p.status !== 'kembali' && p.userId === currentUserId ? `<button onclick="kembaliIzin('${d.id}')" class="bg-green-600 hover:bg-green-500 px-3 py-1 rounded text-xs font-bold transition">Kembali</button>` : ''}
+                        </td>
+                    </tr>`;
                 });
-            });
-            return;
-        }
-        // role staff
-        let izinAktif = izinRecords.find(iz => iz.uidStaf === currentUser.uid && !iz.kembaliDiakui);
-        let html = `<div class="card-title">🚬 FORM IZIN KELUAR (${currentUser.role})</div>`;
-        if (izinAktif) {
-            const lateStatus = isLate(izinAktif) ? '<span class="badge">⚠️ Anda Melebihi Batas Waktu!</span>' : 'Masih dalam durasi izin';
-            html += `<div style="background:#FF450030; padding:15px; border-radius:28px;">
-            <p>✅ Anda sedang dalam izin: <strong>${izinAktif.tujuan}</strong> sejak ${izinAktif.keluarTime?.toDate?.()?.toLocaleTimeString()}</p>
-            <p>${lateStatus}</p>
-            <button id="kembaliButton" class="btn-small">🔁 Kembali (Tutup Izin)</button>
-            </div>`;
-        } else {
-            html += `<div class="flex-form">
-                <select id="tujuanIzin"><option value="Izin Merokok">Izin Merokok (20 menit)</option><option value="Izin tidak merokok">Izin tidak merokok (15 menit)</option></select>
-                <button id="submitIzinKeluar">🚪 KELUAR SEKARANG</button>
-            </div>`;
-        }
-        html += `<hr><h3>Staf Sedang Izin Aktif:</h3><table><tr><th>Nama</th><th>Tujuan</th><th>Jam Keluar</th><th>Status</th></tr>
-        ${izinRecords.filter(iz => !iz.kembaliDiakui && iz.uidStaf !== currentUser.uid).map(iz => {
-            const staff = allStaffList.find(s=>s.uid===iz.uidStaf) || {name: iz.namaStaf};
-            const late = isLate(iz);
-            return `<tr><td>${staff.name}</td><td>${iz.tujuan}</td><td>${iz.keluarTime?.toDate?.()?.toLocaleTimeString()}</td><td>${late? 'TERLAMBAT':'Dalam Izin'}</td></tr>`;
-        }).join('')}</table>`;
-        container.innerHTML = html;
-        if(!izinAktif) document.getElementById('submitIzinKeluar')?.addEventListener('click', async()=>{
-            const tujuan = document.getElementById('tujuanIzin').value;
-            await addDoc(collection(db,"izinKeluar"),{
-                uidStaf: currentUser.uid,
-                namaStaf: currentUser.name,
-                tujuan: tujuan,
-                keluarTime: Timestamp.now(),
-                kembaliDiakui: false,
-                timestamp: Timestamp.now()
-            });
-            await loadIzinHistory();
-            renderDashboard('izinKeluar');
-        });
-        if(document.getElementById('kembaliButton')) {
-            document.getElementById('kembaliButton').addEventListener('click', async()=>{
-                if(izinAktif) await updateDoc(doc(db,"izinKeluar", izinAktif.id),{kembaliDiakui:true, waktuKembali: Timestamp.now()});
-                await loadIzinHistory();
-                renderDashboard('izinKeluar');
+                document.getElementById('riwayatBody').innerHTML = html || '<tr><td colspan="6" class="text-center p-6 text-slate-500">Belum ada riwayat izin hari ini</td></tr>';
+                
+                updateSelfStatus();
             });
         }
-    }
-    
-    async function renderRiwayat(container) {
-        await loadIzinHistory();
-        let filtered = izinRecords.filter(iz => iz.kembaliDiakui === true);
-        if(currentUser.role !== 'LEADER' && currentUser.role !== 'CS LINE') {
-            filtered = filtered.filter(iz => iz.uidStaf === currentUser.uid);
-        }
-        container.innerHTML = `<div class="card-title">📜 Riwayat Izin Keluar</div>
-        <table><tr><th>Nama Staff</th><th>Tujuan</th><th>Keluar</th><th>Kembali</th><th>Durasi</th></tr>
-        ${filtered.map(iz => {
-            const staff = allStaffList.find(s=>s.uid===iz.uidStaf)||{name:iz.namaStaf};
-            const keluarDate = iz.keluarTime?.toDate?.() || new Date();
-            const kembaliDate = iz.waktuKembali?.toDate?.() || new Date();
-            const menit = Math.round((kembaliDate - keluarDate)/60000);
-            return `<tr><td>${staff.name}</td><td>${iz.tujuan}</td><td>${keluarDate.toLocaleTimeString()}</td><td>${kembaliDate.toLocaleTimeString()}</td><td>${menit} menit</td></tr>`;
-        }).join('')}</table>`;
-    }
-    
-    async function renderDataKemarin(container) {
-        if(currentUser.role !== 'LEADER' && currentUser.role !== 'CS LINE') {
-            container.innerHTML = `<div class="card-title">⛔ Akses ditolak</div>`;
-            return;
-        }
-        const kemarin = new Date();
-        kemarin.setDate(kemarin.getDate()-1);
-        kemarin.setHours(0,0,0,0);
-        const besok = new Date(kemarin);
-        besok.setDate(besok.getDate()+1);
-        const snapshot = await getDocs(query(collection(db,"izinKeluar"), where("timestamp",">=", Timestamp.fromDate(kemarin)), where("timestamp","<",Timestamp.fromDate(besok))));
-        let dataKemarin = [];
-        snapshot.forEach(d=>dataKemarin.push({id:d.id,...d.data()}));
-        container.innerHTML = `<div class="card-title">📆 Data Izin Kemarin (${kemarin.toLocaleDateString()})</div>
-        <table><tr><th>Staff</th><th>Tujuan</th><th>Waktu Keluar</th><th>Terlambat?</th></tr>
-        ${dataKemarin.map(iz=>{
-            const staff = allStaffList.find(s=>s.uid===iz.uidStaf)||{name:iz.namaStaf};
-            const durMax = iz.tujuan==="Izin Merokok"?20:15;
-            const keluar = iz.keluarTime?.toDate?.()||new Date();
-            const kembali = iz.waktuKembali?.toDate?.()|| new Date();
-            const selisih = (kembali-keluar)/60000;
-            const terlambat = selisih > durMax;
-            return `<tr><td>${staff.name}</td><td>${iz.tujuan}</td><td>${keluar.toLocaleTimeString()}</td><td>${terlambat ? 'Ya (Lebih dari batas)':'Tepat'}</td></tr>`;
-        }).join('')}</table>`;
-    }
-    
-    async function renderKelolaStaff(container) {
-        if(currentUser.role !== 'LEADER') return;
-        await loadStaffData();
-        container.innerHTML = `<div class="card-title">👥 Kelola Staff & Hak Akses</div>
-        <div class="flex-form"><input id="staffName" placeholder="Nama Staff"><input id="staffEmail" placeholder="Email Staff"><select id="staffRole"><option>CS LINE</option><option>CS LiveChat</option><option>KKS</option><option>KASIR</option></select><button id="addStaffBtn">Tambah Staff</button></div>
-        <table><tr><th>Nama</th><th>Email</th><th>Role</th><th>Aksi</th></tr>
-        ${allStaffList.map(s => `<tr><td>${s.name}</td><td>${s.email}</td><td>${s.role}</td><td><button class="editStaffBtn" data-id="${s.id}" data-email="${s.email}" data-name="${s.name}" data-role="${s.role}">✏️ Edit</button> <button class="delStaffBtn" data-id="${s.id}">❌ Hapus</button></td></tr>`).join('')}</table>
-        <hr><h3>Atur Shift Kerja (Pagi/Sore/Malam) & Jobdesk</h3>
-        <div><textarea id="shiftSetting" placeholder="Contoh: Pagi: 08:00-16:00, Sore: 16:00-00:00, Malam: 00:00-08:00" rows="2"></textarea><button id="saveShiftGlobal">Simpan Shift</button></div>`;
-        document.getElementById('addStaffBtn')?.addEventListener('click', async()=>{
-            const name = document.getElementById('staffName').value;
-            const email = document.getElementById('staffEmail').value;
-            const role = document.getElementById('staffRole').value;
-            if(!name||!email) return alert("Lengkapi data");
-            const defaultPass = "staff123";
-            try {
-                const userCred = await createUserWithEmailAndPassword(auth, email, defaultPass);
-                await setDoc(doc(db,"staff", userCred.user.uid), { uid: userCred.user.uid, name, email, role, shift:"Pagi" });
-                alert(`Staff ${name} ditambahkan! Password awal: staff123 (bisa diganti)`);
-                await loadStaffData();
-                renderKelolaStaff(container);
-            } catch(e){ alert("Gagal:"+e.message); }
-        });
-        document.querySelectorAll('.delStaffBtn').forEach(btn=>btn.addEventListener('click', async(e)=>{
-            if(confirm("Hapus staff?")) await deleteDoc(doc(db,"staff", btn.dataset.id));
-            renderKelolaStaff(container);
-        }));
-        document.querySelectorAll('.editStaffBtn').forEach(btn=>{
-            btn.addEventListener('click',()=>{
-                let newRole = prompt("Ubah Role: CS LINE, CS LiveChat, KKS, KASIR", btn.dataset.role);
-                if(newRole) updateDoc(doc(db,"staff", btn.dataset.id), {role: newRole}).then(()=>renderKelolaStaff(container));
-            });
-        });
-        document.getElementById('saveShiftGlobal')?.addEventListener('click', async()=>{
-            let shiftDesc = document.getElementById('shiftSetting').value;
-            await setDoc(doc(db,"config","shiftJobdesk"), { shiftDesc, updated: Timestamp.now() });
-            alert("Shift tersimpan");
-        });
-        const shiftSnap = await getDoc(doc(db,"config","shiftJobdesk"));
-        if(shiftSnap.exists()) document.getElementById('shiftSetting') && (document.getElementById('shiftSetting').value = shiftSnap.data().shiftDesc);
-    }
-    
-    async function renderJobdeksShift(container){
-        const shiftDoc = await getDoc(doc(db,"config","shiftJobdesk"));
-        let shiftData = shiftDoc.exists() ? shiftDoc.data().shiftDesc : "Pagi: 08-16 | Sore: 16-00 | Malam: 00-08";
-        container.innerHTML = `<div class="card-title">📋 Jadwal Jobdesk & Shift Kerja</div>
-        <p><strong>Shift Kerja Umum:</strong></p><pre style="background:#00000070; padding:12px; border-radius: 24px;">${shiftData}</pre>
-        <p><strong>Jobdesk per Role:</strong><br>- CS LINE: Melayani chat & keluhan<br>- CS LiveChat: Respon cepat livechat<br>- KKS: Koordinasi kasir & stock<br>- KASIR: Transaksi dan pembayaran</p>
-        ${currentUser.role !== 'LEADER' && currentUser.role !== 'CS LINE' ? '' : '<button id="editJobdeskBtn" class="btn-small">Edit Jobdesk (Leader/CS LINE)</button>'}
-        `;
-        if(document.getElementById('editJobdeskBtn')){
-            document.getElementById('editJobdeskBtn').addEventListener('click',()=>{
-                let newJob = prompt("Update jobdesk text:", "CS LINE: ...");
-                if(newJob) alert("Simulasi update jobdesk (implementasi lanjut)");
-            });
-        }
-    }
-    
-    async function renderGantiPassword(container){
-        container.innerHTML = `<div class="card-title">🔐 Ganti Password Akun</div>
-        <div class="input-group"><label>Password Baru</label><input type="password" id="newPassInput" placeholder="Minimal 6 karakter"></div>
-        <div class="input-group"><label>Konfirmasi</label><input type="password" id="confirmPassInput"></div>
-        <button id="updatePassBtn">Update Password</button>`;
-        document.getElementById('updatePassBtn')?.addEventListener('click', async()=>{
-            const newPass = document.getElementById('newPassInput').value;
-            const confirm = document.getElementById('confirmPassInput').value;
-            if(newPass !== confirm) return alert("Password tidak sama");
-            if(newPass.length < 6) return alert("Minimal 6 karakter");
-            try {
-                await updatePassword(auth.currentUser, newPass);
-                alert("Password berhasil diubah!");
-                renderDashboard('gantiPassword');
-            } catch(e){ alert("Error: "+e.message); }
-        });
-    }
-    
-    // LOGIN
-    window.loginHandler = async () => {
-        const loginInput = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        // cari staff apakah ada email tsb?
-        try {
-            let emailLogin = loginInput.includes('@') ? loginInput : '';
-            if(!emailLogin){
-                const staffSnap = await getDocs(collection(db,"staff"));
-                let found = null;
-                staffSnap.forEach(docS=>{ if(docS.data().name === loginInput) found = docS.data(); });
-                if(found && found.email) emailLogin = found.email;
-                else throw new Error("Staff tidak terdaftar");
+
+        async function updateSelfStatus() {
+            const q = query(collection(db, "permits"), where("userId", "==", currentUserId), where("status", "==", "aktif"));
+            const snap = await getDocs(q);
+            const el = document.getElementById('izinActiveStatus');
+            
+            if(!snap.empty) {
+                const p = snap.docs[0].data();
+                el.classList.remove('hidden');
+                el.innerHTML = `
+                    <div class="text-sky-400 font-bold text-lg mb-2"><i class="fa-solid fa-clock mr-2"></i> Sedang Izin Keluar</div>
+                    <p class="text-slate-300 mb-4">Tujuan: ${p.tipe === 'merokok' ? 'Merokok' : 'Non-Rokok'} | Batas Kembali: <span class="text-white font-bold">${p.batasKembali}</span></p>
+                    <button onclick="kembaliIzin('${snap.docs[0].id}')" class="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-xl font-bold transition shadow-lg shadow-green-500/20">
+                        <i class="fa-solid fa-right-to-bracket mr-2"></i> Klik Jika Sudah Kembali
+                    </button>
+                `;
+            } else {
+                el.classList.add('hidden');
             }
-            const userCred = await signInWithEmailAndPassword(auth, emailLogin, password);
-            const staffDoc = await getDoc(doc(db,"staff", userCred.user.uid));
-            if(!staffDoc.exists()) throw new Error("Akun tidak memiliki akses staff");
-            const dataStaff = staffDoc.data();
-            currentUser = { uid: userCred.user.uid, email: userCred.user.email, name: dataStaff.name, role: dataStaff.role };
-            document.getElementById('userRoleDisplay').innerText = `👤 ${currentUser.name} - ${currentUser.role}`;
-            document.getElementById('loginWrapper').style.display = 'none';
-            document.getElementById('dashboardPanel').style.display = 'block';
-            await loadStaffData(); await loadIzinHistory();
-            renderDashboard('izinKeluar');
-        } catch(e) { alert("Login gagal: "+e.message); }
-    };
-    document.getElementById('loginBtn').addEventListener('click', window.loginHandler);
-    document.getElementById('logoutBtnGlobal')?.addEventListener('click', async()=>{
-        await signOut(auth);
-        currentUser = null;
-        document.getElementById('loginWrapper').style.display = 'flex';
-        document.getElementById('dashboardPanel').style.display = 'none';
-        document.getElementById('loginEmail').value = '';
-        document.getElementById('loginPassword').value = '';
-    });
-    // Load leader default jika belum ada staff (opsional) - untuk memudahkan leader pertama
-    (async function initFirstLeader(){
-        const snapshot = await getDocs(collection(db,"staff"));
-        if(snapshot.empty){
-            try{
-                const leaderEmail = "leader@hokbentoto.com";
-                const leaderPass = "leader123";
-                const userCred = await createUserWithEmailAndPassword(auth, leaderEmail, leaderPass);
-                await setDoc(doc(db,"staff", userCred.user.uid), { uid:userCred.user.uid, name:"Super Leader", email:leaderEmail, role:"LEADER", shift:"Pagi" });
-                console.log("Leader default dibuat: leader@hokbentoto.com / leader123");
-            }catch(e){}
         }
-    })();
-    onAuthStateChanged(auth, async(user)=>{
-        if(user && !currentUser){
-            const staffDoc = await getDoc(doc(db,"staff", user.uid));
-            if(staffDoc.exists()){
-                currentUser = { uid:user.uid, email:user.email, name:staffDoc.data().name, role:staffDoc.data().role };
-                document.getElementById('userRoleDisplay').innerText = `👤 ${currentUser.name} - ${currentUser.role}`;
-                document.getElementById('loginWrapper').style.display = 'none';
-                document.getElementById('dashboardPanel').style.display = 'block';
-                await loadStaffData(); await loadIzinHistory();
-                renderDashboard('izinKeluar');
+
+        // DATA KEMARIN
+        async function loadKemarin() {
+            if(currentUserData.role !== 'LEADER' && currentUserData.role !== 'CS LINE') return;
+            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+            const q = query(collection(db, "permits"), where("tanggal", "==", yesterday));
+            const snap = await getDocs(q);
+            let html = '';
+            snap.forEach(d => {
+                const p = d.data();
+                const stat = p.status === 'lewat' ? '<span class="text-red-400">Lewat Waktu</span>' : '<span class="text-green-400">Tepat Waktu</span>';
+                html += `<tr class="border-b border-slate-800"><td class="p-4">${p.nama}</td><td class="p-4">${p.role}</td><td class="p-4">${p.tipe}</td><td class="p-4">${stat}</td></tr>`;
+            });
+            document.getElementById('kemarinBody').innerHTML = html || '<tr><td colspan="4" class="text-center p-6 text-slate-500">Tidak ada data</td></tr>';
+        }
+
+        // KELOLA STAF (LEADER & CS LINE)
+        window.tambahStaf = async () => {
+            const nama = document.getElementById('addNama').value;
+            const email = document.getElementById('addEmail').value;
+            const role = document.getElementById('addRole').value;
+            if(!nama || !email) return alert("Isi data lengkap!");
+            
+            await setDoc(doc(collection(db, "users")), {
+                nama, email, role, shift: "Pagi"
+            });
+            alert("Staf berhasil ditambahkan ke database!");
+            document.getElementById('addNama').value = '';
+            document.getElementById('addEmail').value = '';
+            loadStafList();
+        };
+
+        async function loadStafList() {
+            if(currentUserData.role !== 'LEADER' && currentUserData.role !== 'CS LINE') return;
+            const snap = await getDocs(collection(db, "users"));
+            let htmlStaf = '';
+            let htmlShift = '';
+            snap.forEach(d => {
+                const u = d.data();
+                htmlStaf += `<tr class="border-b border-slate-800 hover:bg-slate-800/40">
+                    <td class="p-4 font-medium text-white">${u.nama}</td>
+                    <td class="p-4 text-slate-400">${u.email}</td>
+                    <td class="p-4"><span class="bg-sky-500/20 text-sky-400 px-2 py-1 rounded text-xs">${u.role}</span></td>
+                    <td class="p-4"><span class="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs">${u.shift}</span></td>
+                    <td class="p-4">
+                        ${u.role !== 'LEADER' ? `<button onclick="deleteStaf('${d.id}')" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>`;
+                if(u.role !== 'LEADER') {
+                    htmlShift += `<option value="${d.id}">${u.nama} - Shift: ${u.shift}</option>`;
+                }
+            });
+            document.getElementById('stafTableBody').innerHTML = htmlStaf || '<tr><td colspan="5" class="text-center p-6 text-slate-500">Tidak ada staf</td></tr>';
+            document.getElementById('shiftStafSelect').innerHTML = htmlShift;
+        }
+
+        window.deleteStaf = async (id) => {
+            if(confirm("Hapus staf ini dari database?")) {
+                await deleteDoc(doc(db, "users", id));
+                loadStafList();
             }
-        } else if(!user && currentUser){
-            currentUser = null;
-            document.getElementById('loginWrapper').style.display = 'flex';
-            document.getElementById('dashboardPanel').style.display = 'none';
-        }
-    });
-</script>
+        };
+
+        window.updateShift = async () => {
+            const id = document.getElementById('shiftStafSelect').value;
+            const shift = document.getElementById('shiftTypeSelect').value;
+            await updateDoc(doc(db, "users", id), { shift });
+            alert("Shift berhasil diubah!");
+            loadStafList();
+        };
+
+    </script>
 </body>
 </html>
