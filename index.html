@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WDMAHJONG - Generator Prediksi Bola</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a2a, #0f0f2a);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 2px solid #00ff88;
+        }
+        .header h1 { color: #00ff88; font-size: 2em; margin-bottom: 10px; }
+        .header p { opacity: 0.8; }
+        
+        /* Dashboard */
+        .dashboard {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #00ff88;
+        }
+        .dashboard h2 { color: #00ff88; margin-bottom: 20px; font-size: 1.3em; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: rgba(0,255,136,0.1);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(0,255,136,0.3);
+        }
+        .stat-card .number { font-size: 2em; font-weight: bold; color: #00ff88; }
+        .stat-card .label { font-size: 0.8em; opacity: 0.8; margin-top: 5px; }
+        
+        /* Logo Table */
+        .logo-table {
+            max-height: 350px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        .logo-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .logo-table th, .logo-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.85em;
+        }
+        .logo-table th {
+            background: rgba(0,255,136,0.2);
+            color: #00ff88;
+            position: sticky;
+            top: 0;
+        }
+        .logo-table img {
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+        }
+        
+        /* Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        .panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #00ff88;
+        }
+        .panel h3 { color: #00ff88; margin-bottom: 15px; }
+        
+        textarea {
+            width: 100%;
+            min-height: 280px;
+            padding: 15px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+        textarea:focus { outline: none; border-color: #00ff88; box-shadow: 0 0 10px #00ff88; }
+        
+        .output {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #00ff88;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 280px;
+            max-height: 450px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-right: 10px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #00cc66;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,255,136,0.3);
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+        }
+        .status.loading { background: rgba(255,165,0,0.2); color: #ffa500; border-left: 3px solid #ffa500; }
+        .status.success { background: rgba(0,255,136,0.1); color: #00ff88; border-left: 3px solid #00ff88; }
+        .status.error { background: rgba(255,0,0,0.1); color: #ff6666; border-left: 3px solid #ff4444; }
+        
+        @media (max-width: 768px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: 1fr; }
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,255,136,0.3);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="container">
+    
+    <!-- Header -->
+    <div class="header">
+        <h1>⚽ WDMAHJONG GENERATOR ⚽</h1>
+        <p>Terintegrasi dengan Google Sheets Database | Auto-fetch Logo Tim</p>
+    </div>
+    
+    <!-- Dashboard -->
+    <div class="dashboard">
+        <h2>📊 DASHBOARD GOOGLE SHEETS</h2>
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number" id="totalTeams">0</div>
+                <div class="label">Total Tim</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="totalLeagues">0</div>
+                <div class="label">Total Liga</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="logosLoaded">0</div>
+                <div class="label">Logo Tersedia</div>
+            </div>
+        </div>
+        
+        <!-- Tabel Logo -->
+        <div id="logoTableContainer" class="logo-table">
+            <div style="text-align: center; padding: 30px;">
+                <div class="spinner"></div> Memuat data dari Google Sheets...
+            </div>
+        </div>
+        <div id="sheetStatus" class="status loading">⏳ Mengambil data dari Google Sheets...</div>
+    </div>
+    
+    <!-- Main Generator -->
+    <div class="main-layout">
+        <!-- Input -->
+        <div class="panel">
+            <h3>📝 INPUT PREDIKSI</h3>
+            <textarea id="inputText" placeholder="Contoh format:
+
+ENGLISH PREMIER LEAGUE
+08/02 21:00 WIB Arsenal vs Chelsea 2 : 1
+08/02 23:30 WIB Liverpool vs Manchester City 1 - 2
+
+SPANISH LA LIGA
+09/02 20:00 WIB Barcelona vs Real Madrid 3 : 1
+
+GERMAN BUNDESLIGA
+09/02 22:30 WIB Bayern Munich vs Borussia Dortmund 2 : 2">ENGLISH PREMIER LEAGUE
+08/02 21:00 WIB Arsenal vs Chelsea 2 : 1
+08/02 23:30 WIB Liverpool vs Manchester City 1 - 2
+
+SPANISH LA LIGA
+09/02 20:00 WIB Barcelona vs Real Madrid 3 : 1</textarea>
+            <div>
+                <button onclick="generateScript()">🚀 GENERATE HTML</button>
+                <button onclick="clearInput()">🗑️ CLEAR</button>
+            </div>
+        </div>
+        
+        <!-- Output -->
+        <div class="panel">
+            <h3>📤 OUTPUT HTML SCRIPT</h3>
+            <div class="output" id="outputCode">Script akan muncul di sini setelah Generate...</div>
+            <button onclick="copyToClipboard()">📋 COPY SCRIPT</button>
+        </div>
+    </div>
+    
+    <div style="margin-top: 25px; text-align: center; font-size: 0.75em; opacity: 0.6;">
+        ⚡ Logo otomatis diambil dari Google Sheets | Support semua format prediksi
+    </div>
+</div>
+
+<script>
+// ============ KONFIGURASI GOOGLE SHEETS (UPDATED) ============
+// Ini adalah Sheet ID dari publikasi Anda
+const GOOGLE_SHEET_ID = '2PACX-1vTfM9a9Y1k2YFFDcmq7NR8z2iG9b3HugwvfuUMer2ZL_12wQCKV-1Z02fVq1F1QGWk2Ad6rB9G3528';
+
+// Database logo
+let teamLogoDatabase = {};
+let allSheetData = [];
+let isDataLoaded = false;
+
+// ============ AMBIL DATA DARI GOOGLE SHEETS ============
+async function fetchGoogleSheetsData() {
+    const statusDiv = document.getElementById('sheetStatus');
+    
+    try {
+        // Gunakan endpoint CSV untuk kemudahan parsing
+        const csvUrl = `https://docs.google.com/spreadsheets/d/e/${GOOGLE_SHEET_ID}/pub?output=csv`;
+        
+        statusDiv.innerHTML = '<div class="spinner"></div> Mengambil data dari Google Sheets...';
+        statusDiv.className = 'status loading';
+        
+        const response = await fetch(csvUrl);
+        const csvText = await response.text();
+        
+        // Parse CSV
+        const lines = csvText.split('\n');
+        if (lines.length < 2) {
+            throw new Error('Data kosong');
+        }
+        
+        // Ambil header
+        const headers = lines[0].split(',').map(h => h.replace(/["']/g, '').toLowerCase().trim());
+        
+        // Cari index kolom yang sesuai
+        let leagueIdx = -1, teamIdx = -1, logoIdx = -1;
+        
+        for (let i = 0; i < headers.length; i++) {
+            const h = headers[i];
+            if (h.includes('liga') || h.includes('league') || h === 'a') leagueIdx = i;
+            if (h.includes('tim') || h.includes('team') || h === 'b') teamIdx = i;
+            if (h.includes('logo') || h === 'c') logoIdx = i;
+        }
+        
+        // Fallback ke index default
+        if (leagueIdx === -1) leagueIdx = 0;
+        if (teamIdx === -1) teamIdx = 1;
+        if (logoIdx === -1) logoIdx = 2;
+        
+        // Parse data rows
+        allSheetData = [];
+        const uniqueLeagues = new Set();
+        
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            
+            // Parse CSV sederhana (handle quotes)
+            let row = [];
+            let inQuote = false;
+            let current = '';
+            
+            for (let char of lines[i]) {
+                if (char === '"') {
+                    inQuote = !inQuote;
+                } else if (char === ',' && !inQuote) {
+                    row.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            row.push(current.trim());
+            
+            // Bersihkan quotes
+            row = row.map(cell => cell.replace(/^["']|["']$/g, '').trim());
+            
+            const league = row[leagueIdx] || '';
+            const team = row[teamIdx] || '';
+            const logoUrl = row[logoIdx] || '';
+            
+            if (team && logoUrl && logoUrl.startsWith('http')) {
+                allSheetData.push({ league, team, logoUrl });
+                teamLogoDatabase[team.toLowerCase().trim()] = logoUrl;
+                if (league) uniqueLeagues.add(league);
+            }
+        }
+        
+        isDataLoaded = true;
+        
+        // Update UI
+        updateDashboardStats();
+        renderLogoTable();
+        
+        const leagueCount = uniqueLeagues.size;
+        statusDiv.innerHTML = `✅ Berhasil! ${allSheetData.length} logo tim dari ${leagueCount} liga berhasil dimuat.`;
+        statusDiv.className = 'status success';
+        
+        // Auto-generate jika ada input
+        if (document.getElementById('inputText').value.trim()) {
+            generateScript();
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        statusDiv.innerHTML = `❌ Gagal memuat data: ${error.message}. Pastikan sheet sudah dipublikasikan (File > Share > Publish to web).`;
+        statusDiv.className = 'status error';
+        
+        // Load contoh data sebagai fallback
+        loadFallbackData();
+    }
+}
+
+// Fallback data
+function loadFallbackData() {
+    const fallbackData = [
+        { league: 'English Premier League', team: 'Arsenal', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/uyhb1e1612.jpg' },
+        { league: 'English Premier League', team: 'Chelsea', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/ywv1u144.jpg' },
+        { league: 'English Premier League', team: 'Liverpool', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/5u1w6l171.jpg' },
+        { league: 'English Premier League', team: 'Manchester City', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/6i1v1t163.jpg' },
+        { league: 'Spanish La Liga', team: 'Barcelona', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/wq9s1r163.jpg' },
+        { league: 'Spanish La Liga', team: 'Real Madrid', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/eq82ex164.jpg' },
+        { league: 'Spanish La Liga', team: 'Atletico Madrid', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/0ulh3q1719.jpg' },
+        { league: 'German Bundesliga', team: 'Bayern Munich', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/01qk1h1716.jpg' },
+        { league: 'German Bundesliga', team: 'Borussia Dortmund', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/tq8q1e1716.jpg' },
+        { league: 'Italian Serie A', team: 'AC Milan', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/wvspur144.jpg' },
+        { league: 'Italian Serie A', team: 'Inter Milan', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/ryhu6d161.jpg' }
+    ];
+    
+    for (const item of fallbackData) {
+        allSheetData.push(item);
+        teamLogoDatabase[item.team.toLowerCase().trim()] = item.logoUrl;
+    }
+    
+    isDataLoaded = true;
+    updateDashboardStats();
+    renderLogoTable();
+    
+    const statusDiv = document.getElementById('sheetStatus');
+    statusDiv.innerHTML = '⚠️ Menggunakan data contoh (fallback). Pastikan Google Sheets sudah dipublikasikan dengan benar.';
+    statusDiv.className = 'status error';
+}
+
+// Update statistik
+function updateDashboardStats() {
+    document.getElementById('totalTeams').textContent = allSheetData.length;
+    
+    const uniqueLeagues = new Set(allSheetData.map(item => item.league));
+    document.getElementById('totalLeagues').textContent = uniqueLeagues.size;
+    
+    const validLogos = allSheetData.filter(item => item.logoUrl && item.logoUrl.startsWith('http')).length;
+    document.getElementById('logosLoaded').textContent = validLogos;
+}
+
+// Render tabel logo
+function renderLogoTable() {
+    const container = document.getElementById('logoTableContainer');
+    
+    if (allSheetData.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 30px;">📭 Belum ada data logo. Periksa koneksi Google Sheets.</div>';
+        return;
+    }
+    
+    let html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>🏆 Liga</th>
+                    <th>⚽ Tim</th>
+                    <th>🖼️ Logo</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    const displayData = allSheetData.slice(0, 30);
+    for (const item of displayData) {
+        html += `
+            <tr>
+                <td>${escapeHtml(item.league || '-')}</td>
+                <td><strong>${escapeHtml(item.team)}</strong></td>
+                <td><img src="${item.logoUrl}" alt="${escapeHtml(item.team)}" onerror="this.style.opacity='0.5'"></td>
+            </tr>
+        `;
+    }
+    
+    if (allSheetData.length > 30) {
+        html += `<tr><td colspan="3" style="text-align: center; padding: 10px;">... dan ${allSheetData.length - 30} data lainnya</td></tr>`;
+    }
+    
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+// Helper
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Dapatkan logo tim
+function getTeamLogo(teamName) {
+    if (!teamName) return '';
+    const key = teamName.toLowerCase().trim();
+    
+    if (teamLogoDatabase[key]) {
+        return teamLogoDatabase[key];
+    }
+    
+    // Coba tanpa kata tambahan
+    const cleanKey = key.replace(/\s+(fc|united|city|hotspur|albion|afc)$/i, '').trim();
+    if (cleanKey !== key && teamLogoDatabase[cleanKey]) {
+        return teamLogoDatabase[cleanKey];
+    }
+    
+    // Placeholder SVG
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23333'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2300ff88' font-size='14' font-weight='bold'%3E${teamName.substring(0,2).toUpperCase()}%3C/text%3E%3C/svg%3E`;
+}
+
+// Parse input prediksi
+function parseMatchLine(line) {
+    const trimmed = line.trim();
+    if (!/\bv\.?s\.?\b/i.test(trimmed)) return null;
+    
+    let date = '', time = '', team1 = '', team2 = '', score1 = '', score2 = '';
+    let remaining = trimmed;
+    
+    // Score
+    const scoreMatch = remaining.match(/\b(\d{1,2})\s*[:\-\u2013\u2014]\s*(\d{1,2})\s*$/);
+    if (scoreMatch) {
+        score1 = scoreMatch[1];
+        score2 = scoreMatch[2];
+        remaining = remaining.substring(0, scoreMatch.index).trim();
+    }
+    
+    // Date & Time
+    const dtMatch = remaining.match(/^(\d{1,2}[\/\-]\d{1,2})(?:\s+(\d{1,2}[:.]\d{2})(?:\s+(WIB|WITA|WIT))?)?/i);
+    if (dtMatch) {
+        date = dtMatch[1].replace(/-/g, '/');
+        if (dtMatch[2]) {
+            time = dtMatch[2].replace('.', ':');
+            if (dtMatch[3]) time += ' ' + dtMatch[3];
+        }
+        remaining = remaining.substring(dtMatch[0].length).trim();
+    }
+    
+    // Teams
+    const vsMatch = remaining.match(/^(.+?)\s+v\.?s\.?\s+(.+)$/i);
+    if (!vsMatch) return null;
+    
+    team1 = vsMatch[1].trim();
+    team2 = vsMatch[2].trim();
+    
+    if (!team1 || !team2) return null;
+    
+    return {
+        date: date || '-',
+        time: time || '-',
+        team1: team1,
+        team2: team2,
+        score1: score1 || '-',
+        score2: score2 || '-'
+    };
+}
+
+function parseAll(input) {
+    const lines = input.split('\n').filter(l => l.trim());
+    const result = [];
+    let currentLeague = null;
+    let matches = [];
+    
+    for (const line of lines) {
+        const match = parseMatchLine(line);
+        if (!match) {
+            if (currentLeague && matches.length) {
+                result.push({ name: currentLeague, matches: matches.slice() });
+            }
+            currentLeague = line.trim();
+            matches = [];
+        } else if (currentLeague) {
+            matches.push(match);
+        }
+    }
+    
+    if (currentLeague && matches.length) {
+        result.push({ name: currentLeague, matches: matches.slice() });
+    }
+    
+    return result;
+}
+
+// Generate HTML Output
+function generateHtmlOutput(leagues, dateStr) {
+    let matchesHtml = '';
+    
+    for (const league of leagues) {
+        matchesHtml += `
+        <div class="league-block" data-league="${escapeHtml(league.name)}">
+            <div class="league-inner">
+                <div class="league-crown">
+                    <div class="crown-name">🏆 ${escapeHtml(league.name)} 🏆</div>
+                </div>`;
+        
+        for (let i = 0; i < league.matches.length; i++) {
+            const m = league.matches[i];
+            const rowClass = i % 2 === 0 ? 'even' : 'odd';
+            const logo1 = getTeamLogo(m.team1);
+            const logo2 = getTeamLogo(m.team2);
+            
+            matchesHtml += `
+                <div class="match-card ${rowClass}">
+                    <div class="team-side">
+                        <img class="team-logo" src="${logo1}" alt="${escapeHtml(m.team1)}" onerror="this.src='${getTeamLogo(m.team1)}'">
+                        <span class="team-name">${escapeHtml(m.team1)}</span>
+                    </div>
+                    <div class="score-center">
+                        <div class="score-num">${m.score1} : ${m.score2}</div>
+                        <div class="match-dt">${m.date}<br>${m.time}</div>
+                    </div>
+                    <div class="team-side right">
+                        <span class="team-name">${escapeHtml(m.team2)}</span>
+                        <img class="team-logo" src="${logo2}" alt="${escapeHtml(m.team2)}" onerror="this.src='${getTeamLogo(m.team2)}'">
+                    </div>
+                </div>`;
+        }
+        
+        matchesHtml += `</div></div>`;
+    }
+    
+    const leagueOptions = leagues.map(l => `<option value="${escapeHtml(l.name)}">🏆 ${escapeHtml(l.name)}</option>`).join('');
+    
+    return `<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WDMAHJONG - Prediksi Bola</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0a1a, #0f0f2a);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header { text-align: center; padding: 20px; margin-bottom: 20px; }
+        .header img { max-width: 200px; }
+        .date-box {
+            text-align: center;
+            background: rgba(0,255,136,0.1);
+            border: 2px solid #00ff88;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 400px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        .marquee {
+            background: linear-gradient(90deg, #0a0a1a, #1a1a3a, #0a0a1a);
+            padding: 15px;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+            border: 2px solid #00ff88;
+            border-radius: 12px;
+            margin: 20px auto;
+            width: 90%;
+        }
+        .marquee span {
+            display: inline-block;
+            animation: scroll 30s linear infinite;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .filter-wrap {
+            width: 90%;
+            margin: 20px auto;
+        }
+        .filter-select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            color: #00ff88;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .league-block {
+            width: 90%;
+            margin: 20px auto;
+            border: 3px solid #00ff88;
+            border-radius: 15px;
+            padding: 5px;
+            background: rgba(0,0,0,0.3);
+            box-shadow: 0 0 20px rgba(0,255,136,0.3);
+        }
+        .league-inner { border-radius: 10px; overflow: hidden; }
+        .league-crown {
+            background: linear-gradient(135deg, #0a0a1a, #1a1a3a);
+            padding: 12px;
+            text-align: center;
+            border-bottom: 2px solid #00ff88;
+        }
+        .crown-name { color: #00ff88; font-weight: bold; font-size: 14px; letter-spacing: 2px; }
+        .match-card {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid rgba(0,255,136,0.2);
+        }
+        .match-card.even { background: rgba(0,255,136,0.05); }
+        .match-card.odd { background: rgba(0,0,0,0.3); }
+        .match-card:hover { background: rgba(0,255,136,0.15); }
+        .team-side {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .team-side.right { flex-direction: row-reverse; text-align: right; }
+        .team-logo { width: 40px; height: 40px; object-fit: contain; }
+        .team-name { font-size: 12px; font-weight: 600; }
+        .score-center {
+            flex-shrink: 0;
+            width: 90px;
+            text-align: center;
+        }
+        .score-num {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        .match-dt { font-size: 10px; opacity: 0.7; }
+        @media (min-width: 768px) {
+            .team-name { font-size: 14px; }
+            .score-num { font-size: 22px; }
+            .score-center { width: 110px; }
+            .crown-name { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="color:#00ff88;">WDMAHJONG</h1>
+        <p>Prediksi Skor Akurat</p>
+    </div>
+    
+    <div class="date-box">📅 ${dateStr}</div>
+    
+    <div class="marquee">
+        <span>🔥 PREDIKSI BOLA TERUPDATE! Daftar di WDMAHJONG dan nikmati bonus menarik! 🔥</span>
+    </div>
+    
+    <div class="filter-wrap">
+        <select class="filter-select" id="leagueFilter" onchange="filterLeague(this.value)">
+            <option value="all">🏆 SEMUA LIGA</option>
+            ${leagueOptions}
+        </select>
+    </div>
+    
+    <div id="matchesContainer">
+        ${matchesHtml}
+    </div>
+    
+    <script>
+        function filterLeague(leagueName) {
+            const blocks = document.querySelectorAll('.league-block');
+            blocks.forEach(block => {
+                if (leagueName === 'all' || block.dataset.league === leagueName) {
+                    block.style.display = 'block';
+                } else {
+                    block.style.display = 'none';
+                }
+            });
+        }
+    <\/script>
+</body>
+</html>`;
+}
+
+// Generate script utama
+async function generateScript() {
+    const input = document.getElementById('inputText').value.trim();
+    const outputDiv = document.getElementById('outputCode');
+    
+    if (!input) {
+        outputDiv.innerHTML = '<span style="color:#ff6666;">❌ Masukkan prediksi terlebih dahulu!</span>';
+        return;
+    }
+    
+    outputDiv.innerHTML = '<div class="spinner"></div> Memproses prediksi dan mengambil logo...';
+    
+    // Tunggu data selesai loading jika belum
+    if (!isDataLoaded) {
+        outputDiv.innerHTML = '<div class="spinner"></div> Menunggu data Google Sheets selesai dimuat...';
+        await new Promise(resolve => {
+            const checkInterval = setInterval(() => {
+                if (isDataLoaded) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 200);
+            setTimeout(() => resolve(), 10000);
+        });
+    }
+    
+    const leagues = parseAll(input);
+    
+    if (leagues.length === 0) {
+        outputDiv.innerHTML = '<span style="color:#ff6666;">❌ Format prediksi tidak dikenali! Gunakan format: LIGA, lalu tanggal tim vs tim skor</span>';
+        return;
+    }
+    
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+    const dateStr = `${now.toLocaleDateString('id-ID')} - ${tomorrow.toLocaleDateString('id-ID')}`;
+    
+    const htmlScript = generateHtmlOutput(leagues, dateStr);
+    outputDiv.innerHTML = htmlScript;
+    
+    const totalMatches = leagues.reduce((sum, l) => sum + l.matches.length, 0);
+    const statusDiv = document.getElementById('sheetStatus');
+    statusDiv.innerHTML = `✅ Script selesai! ${leagues.length} Liga, ${totalMatches} Match. Logo dari database Google Sheets.`;
+    statusDiv.className = 'status success';
+}
+
+function clearInput() {
+    document.getElementById('inputText').value = '';
+    document.getElementById('outputCode').innerHTML = 'Script akan muncul di sini setelah Generate...';
+}
+
+function copyToClipboard() {
+    const output = document.getElementById('outputCode').innerText;
+    if (!output || output.includes('Script akan muncul') || output.includes('Masukkan prediksi')) {
+        alert('⚠️ Belum ada script yang di-generate!');
+        return;
+    }
+    
+    navigator.clipboard.writeText(output).then(() => {
+        alert('✅ Script berhasil dicopy!');
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = '✓ TERSALIN!';
+        setTimeout(() => btn.innerText = originalText, 2000);
+    }).catch(() => {
+        alert('Gagal copy, silakan copy manual.');
+    });
+}
+
+// Inisialisasi
+fetchGoogleSheetsData();
+</script>
+</body>
+</html>
