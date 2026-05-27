@@ -1,820 +1,963 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WDMAHJONG Generator</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #00E676;
-            --primary-light: #69F0AE;
-            --primary-dark: #00C853;
-            --bg-main: #000d06;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            background: linear-gradient(135deg, rgba(0,13,6,0.95), rgba(0,26,10,0.95));
-            color: #ffffff;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        
-        .header {
-            text-align: center;
-            padding: 30px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 20px;
-            margin-bottom: 30px;
-            border: 3px solid var(--primary);
-        }
-        .header h1 { color: var(--primary); font-family: 'Orbitron', sans-serif; }
-        
-        .auto-date {
-            background: rgba(0,0,0,0.3);
-            border: 2px solid var(--primary);
-            border-radius: 15px;
-            padding: 15px;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .auto-date .date-display {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--primary);
-            font-size: 24px;
-        }
-        
-        /* Dashboard Sheets */
-        .sheets-dashboard {
-            background: rgba(0,0,0,0.4);
-            border: 2px solid var(--primary);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-        .sheets-dashboard h3 { color: var(--primary); margin-bottom: 15px; }
-        
-        .stats-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .stat-sheet {
-            background: rgba(0,230,118,0.1);
-            border: 1px solid var(--primary);
-            border-radius: 10px;
-            padding: 10px 20px;
-            flex: 1;
-            text-align: center;
-        }
-        .stat-sheet .number {
-            font-size: 28px;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        
-        .logo-preview-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            margin-top: 15px;
-        }
-        .logo-card {
-            background: rgba(0,0,0,0.6);
-            border-radius: 8px;
-            padding: 8px;
-            text-align: center;
-            width: 85px;
-            border: 1px solid rgba(0,230,118,0.3);
-        }
-        .logo-card img {
-            width: 55px;
-            height: 55px;
-            object-fit: contain;
-        }
-        .logo-card .team-name {
-            font-size: 9px;
-            margin-top: 5px;
-            display: block;
-            color: var(--primary);
-        }
-        
-        .status-badge {
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            margin: 10px 0;
-        }
-        .status-badge.success { background: rgba(0,230,118,0.2); color: #0f0; }
-        .status-badge.error { background: rgba(255,0,0,0.2); color: #f66; }
-        .status-badge.loading { background: rgba(255,165,0,0.2); color: #fa0; }
-        
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-        .section {
-            background: rgba(0,0,0,0.4);
-            border: 2px solid rgba(0,230,118,0.5);
-            border-radius: 15px;
-            padding: 20px;
-        }
-        .section h2 { color: var(--primary); margin-bottom: 15px; }
-        
-        .stats-bar {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(0,230,118,0.1);
-            border-radius: 10px;
-        }
-        .stat-item { flex: 1; text-align: center; }
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--primary);
-        }
-        
-        textarea {
-            width: 100%;
-            min-height: 300px;
-            padding: 15px;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid var(--primary);
-            border-radius: 10px;
-            color: #fff;
-            font-family: monospace;
-        }
-        
-        .output-code {
-            background: rgba(0,0,0,0.6);
-            border: 1px solid var(--primary);
-            border-radius: 10px;
-            padding: 15px;
-            min-height: 300px;
-            max-height: 400px;
-            overflow: auto;
-            font-family: monospace;
-            font-size: 10px;
-            white-space: pre-wrap;
-        }
-        
-        button {
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 15px;
-            margin-right: 10px;
-        }
-        button:hover { background: var(--primary-dark); transform: translateY(-2px); }
-        
-        .preview-container {
-            background: var(--bg-main);
-            border: 3px solid var(--primary);
-            border-radius: 15px;
-            overflow: hidden;
-        }
-        .preview-header {
-            text-align: center;
-            padding: 20px;
-            background: #001a0d;
-            border-bottom: 2px solid var(--primary);
-        }
-        .preview-marquee {
-            background: #001a0d;
-            padding: 12px;
-            text-align: center;
-            overflow: hidden;
-            white-space: nowrap;
-            border-bottom: 2px solid var(--primary);
-        }
-        .preview-marquee span {
-            display: inline-block;
-            animation: scroll 20s linear infinite;
-            color: var(--primary);
-        }
-        @keyframes scroll {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-        .preview-content { padding: 20px; }
-        
-        .prev-match-card {
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            border-bottom: 1px solid #1a3a1a;
-        }
-        .prev-team-side {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .prev-team-side.right { flex-direction: row-reverse; }
-        .prev-team-logo { width: 30px; height: 30px; object-fit: contain; }
-        .prev-score-center {
-            width: 80px;
-            text-align: center;
-        }
-        .prev-score-num { color: var(--primary); font-weight: bold; font-size: 16px; }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--primary);
-            color: #000;
-            padding: 15px 25px;
-            border-radius: 10px;
-            display: none;
-            z-index: 9999;
-        }
-        
-        @media (max-width: 768px) {
-            .main-layout { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-
-    <div class="header">
-        <h1>⚽ WDMAHJONG GENERATOR ⚽</h1>
-        <p>Terintegrasi dengan Google Sheets - Logo Otomatis</p>
-    </div>
-
-    <div class="auto-date">
-        <strong>📅 TANGGAL OTOMATIS</strong>
-        <div class="date-display" id="autoDate">Loading...</div>
-    </div>
-
-    <!-- DASHBOARD GOOGLE SHEETS -->
-    <div class="sheets-dashboard">
-        <h3>📊 DATABASE LOGO DARI GOOGLE SHEETS</h3>
-        <div class="stats-row">
-            <div class="stat-sheet">
-                <div class="number" id="totalTeams">0</div>
-                <div class="label">Total Tim</div>
-            </div>
-            <div class="stat-sheet">
-                <div class="number" id="totalLeaguesSheets">0</div>
-                <div class="label">Total Liga</div>
-            </div>
-        </div>
-        <div id="statusMessage" class="status-badge loading">⏳ Memuat data dari Google Sheets...</div>
-        <div id="logoGrid" class="logo-preview-grid">
-            <div style="text-align:center; width:100%;">Memuat logo...</div>
-        </div>
-    </div>
-
-    <div class="main-layout">
-        <!-- INPUT -->
-        <div class="section">
-            <h2>📝 INPUT PREDIKSI</h2>
-            <div class="stats-bar">
-                <div class="stat-item"><div class="stat-label">Liga</div><div class="stat-value" id="statLeagues">0</div></div>
-                <div class="stat-item"><div class="stat-label">Match</div><div class="stat-value" id="statMatches">0</div></div>
-                <div class="stat-item"><div class="stat-label">Logo</div><div class="stat-value" id="statLogos">0</div></div>
-            </div>
-            <textarea id="inputText" placeholder="Contoh format:
-
-ENGLISH PREMIER LEAGUE
-08/02 21:00 WIB Arsenal vs Chelsea 2:1
-08/02 23:30 WIB Liverpool vs Manchester City 1-2
-
-SPANISH LA LIGA
-09/02 20:00 WIB Barcelona vs Real Madrid 3:1">ENGLISH PREMIER LEAGUE
-08/02 21:00 WIB Arsenal vs Chelsea 2:1
-08/02 23:30 WIB Liverpool vs Manchester City 1-2
-
-SPANISH LA LIGA
-09/02 20:00 WIB Barcelona vs Real Madrid 3:1</textarea>
-            <div>
-                <button onclick="generateScript()">🚀 GENERATE HTML</button>
-                <button onclick="clearAll()">🗑️ CLEAR</button>
-            </div>
-        </div>
-
-        <!-- OUTPUT -->
-        <div class="section">
-            <h2>📤 OUTPUT HTML</h2>
-            <div class="output-code" id="outputCode">Klik GENERATE untuk membuat script HTML...</div>
-            <button onclick="copyOutput()">📋 COPY SCRIPT</button>
-        </div>
-    </div>
-
-    <!-- PREVIEW -->
-    <div class="section" style="margin-top: 25px;">
-        <h2>👁️ PREVIEW HASIL</h2>
-        <div class="preview-container">
-            <div class="preview-header">
-                <h3 style="color:var(--primary);">WDMAHJONG</h3>
-                <div id="previewDateHeader" class="preview-date" style="color:var(--primary);">-</div>
-            </div>
-            <div class="preview-marquee">
-                <span>🔥 PREDIKSI BOLA TERUPDATE! Daftar di WDMAHJONG sekarang! 🔥</span>
-            </div>
-            <div class="preview-content">
-                <div id="previewMatches"></div>
-                <div id="previewEmpty" style="text-align:center; padding:40px;">Belum ada data, masukkan prediksi dan klik GENERATE</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="notification" class="notification">Notifikasi</div>
-
-<script>
-// ============ KONFIGURASI ============
-// GOOGLE SHEETS ID ANDA
-const SHEET_ID = '2PACX-1vTfM9a9Y1k2YFFDcmq7NR8z2iG9b3HugwvfuUMer2ZL_12wQCKV-1Z02fVq1F1QGWk2Ad6rB9G3528';
-
-// Database logo
-let logoDatabase = {};
-let allSheetData = [];
-let isDataReady = false;
-
-// ============ AMBIL DATA DARI GOOGLE SHEETS ============
-async function fetchSheetData() {
-    const statusDiv = document.getElementById('statusMessage');
-    const gridDiv = document.getElementById('logoGrid');
-    
-    try {
-        statusDiv.className = 'status-badge loading';
-        statusDiv.innerHTML = '⏳ Mengambil data dari Google Sheets...';
-        
-        // Gunakan CSV endpoint
-        const csvUrl = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
-        
-        console.log('Fetching:', csvUrl);
-        
-        const response = await fetch(csvUrl);
-        const csvText = await response.text();
-        
-        console.log('CSV length:', csvText.length);
-        
-        // Parse CSV manual
-        const lines = csvText.split('\n');
-        if (lines.length < 2) throw new Error('Data kosong');
-        
-        // Ambil header
-        const headers = lines[0].split(',').map(h => h.replace(/["']/g, '').toLowerCase());
-        console.log('Headers:', headers);
-        
-        // Cari kolom
-        let leagueCol = -1, teamCol = -1, logoCol = -1;
-        for (let i = 0; i < headers.length; i++) {
-            if (headers[i].includes('liga') || headers[i].includes('league')) leagueCol = i;
-            if (headers[i].includes('tim') || headers[i].includes('team')) teamCol = i;
-            if (headers[i].includes('logo')) logoCol = i;
-        }
-        
-        // Fallback ke index
-        if (leagueCol === -1) leagueCol = 0;
-        if (teamCol === -1) teamCol = 1;
-        if (logoCol === -1) logoCol = 2;
-        
-        console.log(`Kolom: League=${leagueCol}, Team=${teamCol}, Logo=${logoCol}`);
-        
-        // Parse data
-        const data = [];
-        const leaguesSet = new Set();
-        
-        for (let i = 1; i < lines.length; i++) {
-            if (!lines[i].trim()) continue;
-            
-            // Parse CSV line (sederhana)
-            const values = [];
-            let current = '';
-            let inQuote = false;
-            
-            for (let j = 0; j < lines[i].length; j++) {
-                const char = lines[i][j];
-                if (char === '"') {
-                    inQuote = !inQuote;
-                } else if (char === ',' && !inQuote) {
-                    values.push(current.trim());
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            values.push(current.trim());
-            
-            // Hapus quotes
-            const cleanValues = values.map(v => v.replace(/^["']|["']$/g, ''));
-            
-            const league = cleanValues[leagueCol] || '';
-            const team = cleanValues[teamCol] || '';
-            const logoUrl = cleanValues[logoCol] || '';
-            
-            if (team && logoUrl && (logoUrl.startsWith('http://') || logoUrl.startsWith('https://'))) {
-                data.push({ league, team, logoUrl });
-                logoDatabase[team.toLowerCase()] = logoUrl;
-                if (league) leaguesSet.add(league);
-            }
-        }
-        
-        allSheetData = data;
-        isDataReady = true;
-        
-        // Update UI
-        document.getElementById('totalTeams').textContent = data.length;
-        document.getElementById('totalLeaguesSheets').textContent = leaguesSet.size;
-        
-        if (data.length > 0) {
-            statusDiv.className = 'status-badge success';
-            statusDiv.innerHTML = `✅ Berhasil! ${data.length} logo tim dari ${leaguesSet.size} liga`;
-            renderLogoGrid();
-        } else {
-            statusDiv.className = 'status-badge error';
-            statusDiv.innerHTML = '⚠️ Tidak ada data valid. Pastikan kolom berisi URL logo (http:// atau https://)';
-            gridDiv.innerHTML = '<div style="text-align:center; width:100%;">📭 Tidak ada data logo</div>';
-            // Load demo data
-            loadDemoData();
-        }
-        
-    } catch (error) {
-        console.error('Error:', error);
-        statusDiv.className = 'status-badge error';
-        statusDiv.innerHTML = `❌ Error: ${error.message}. Gunakan data demo.`;
-        loadDemoData();
-    }
-}
-
-// Data demo jika gagal konek
-function loadDemoData() {
-    const demoData = [
-        { league: 'English Premier League', team: 'Arsenal', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/uyhb1e1612.jpg' },
-        { league: 'English Premier League', team: 'Chelsea', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/ywv1u144.jpg' },
-        { league: 'English Premier League', team: 'Liverpool', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/5u1w6l171.jpg' },
-        { league: 'English Premier League', team: 'Manchester City', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/6i1v1t163.jpg' },
-        { league: 'Spanish La Liga', team: 'Barcelona', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/wq9s1r163.jpg' },
-        { league: 'Spanish La Liga', team: 'Real Madrid', logoUrl: 'https://r2.thesportsdb.com/images/media/team/badge/eq82ex164.jpg' }
-    ];
-    
-    allSheetData = demoData;
-    for (const item of demoData) {
-        logoDatabase[item.team.toLowerCase()] = item.logoUrl;
-    }
-    isDataReady = true;
-    
-    document.getElementById('totalTeams').textContent = demoData.length;
-    document.getElementById('totalLeaguesSheets').textContent = 2;
-    renderLogoGrid();
-}
-
-// Render grid logo
-function renderLogoGrid() {
-    const grid = document.getElementById('logoGrid');
-    if (!allSheetData.length) {
-        grid.innerHTML = '<div style="text-align:center; width:100%;">📭 Tidak ada data</div>';
-        return;
-    }
-    
-    let html = '';
-    for (let i = 0; i < Math.min(allSheetData.length, 20); i++) {
-        const item = allSheetData[i];
-        html += `
-            <div class="logo-card">
-                <img src="${item.logoUrl}" alt="${item.team}" 
-                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'55\' height=\'55\'%3E%3Crect width=\'55\' height=\'55\' fill=\'%23333\'/%3E%3Ctext x=\'27\' y=\'32\' text-anchor=\'middle\' fill=\'%2300ff88\' font-size=\'12\'%3E${item.team.substring(0,2).toUpperCase()}%3C/text%3E%3C/svg%3E'">
-                <span class="team-name">${item.team.substring(0, 12)}</span>
-            </div>
-        `;
-    }
-    grid.innerHTML = html;
-}
-
-// Dapatkan logo
-function getLogo(teamName) {
-    if (!teamName) return '';
-    const key = teamName.toLowerCase();
-    if (logoDatabase[key]) return logoDatabase[key];
-    
-    // Coba tanpa kata tambahan
-    const simpleKey = key.replace(/\s+(fc|united|city|afc)$/, '').trim();
-    if (logoDatabase[simpleKey]) return logoDatabase[simpleKey];
-    
-    // Fallback SVG
-    const initial = teamName.substring(0, 2).toUpperCase();
-    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23333'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2300ff88' font-size='28'%3E${initial}%3C/text%3E%3C/svg%3E`;
-}
-
-// Parse input
-function parseInput(input) {
-    const lines = input.split('\n').filter(l => l.trim());
-    const result = [];
-    let currentLeague = null;
-    let matches = [];
-    
-    for (const line of lines) {
-        const trimmed = line.trim();
-        
-        // Cek apakah ini baris match (mengandung vs)
-        const vsMatch = trimmed.match(/^(.+?)\s+v\.?s\.?\s+(.+)$/i);
-        
-        if (vsMatch && currentLeague) {
-            // Parse match
-            let date = '-', time = '-', team1 = '', team2 = '', score1 = '-', score2 = '-';
-            let remaining = trimmed;
-            
-            // Score
-            const scoreRegex = /(\d{1,2})\s*[:\-]\s*(\d{1,2})$/;
-            const score = remaining.match(scoreRegex);
-            if (score) {
-                score1 = score[1];
-                score2 = score[2];
-                remaining = remaining.substring(0, score.index).trim();
-            }
-            
-            // Date time
-            const dtRegex = /^(\d{1,2}[\/\-]\d{1,2})(?:\s+(\d{1,2}[:.]\d{2}))?/;
-            const dt = remaining.match(dtRegex);
-            if (dt) {
-                date = dt[1].replace(/-/g, '/');
-                if (dt[2]) time = dt[2].replace('.', ':');
-                remaining = remaining.substring(dt[0].length).trim();
-            }
-            
-            // Teams
-            const teams = remaining.match(/^(.+?)\s+v\.?s\.?\s+(.+)$/i);
-            if (teams) {
-                team1 = teams[1].trim();
-                team2 = teams[2].trim();
-                matches.push({ date, time, team1, team2, score1, score2 });
-            }
-        } else {
-            // Ini adalah nama liga baru
-            if (currentLeague && matches.length) {
-                result.push({ name: currentLeague, matches: [...matches] });
-            }
-            currentLeague = trimmed;
-            matches = [];
-        }
-    }
-    
-    if (currentLeague && matches.length) {
-        result.push({ name: currentLeague, matches: [...matches] });
-    }
-    
-    return result;
-}
-
-// Generate HTML output
-function generateHtmlOutput(leagues, dateStr) {
-    let matchesHtml = '';
-    
-    for (const league of leagues) {
-        matchesHtml += `
-        <div class="league-block" style="margin:15px 0; border:2px solid #00ff88; border-radius:10px; padding:10px; background:rgba(0,0,0,0.3);">
-            <div style="background:#001a0d; padding:10px; text-align:center; border-bottom:1px solid #00ff88;">
-                <strong style="color:#00ff88;">🏆 ${escapeHtml(league.name)} 🏆</strong>
-            </div>
-        `;
-        
-        for (let i = 0; i < league.matches.length; i++) {
-            const m = league.matches[i];
-            const rowBg = i % 2 === 0 ? 'rgba(0,255,136,0.05)' : 'rgba(0,0,0,0.3)';
-            const logo1 = getLogo(m.team1);
-            const logo2 = getLogo(m.team2);
-            
-            matchesHtml += `
-            <div style="display:flex; align-items:center; padding:10px; border-bottom:1px solid #1a3a1a; background:${rowBg};">
-                <div style="flex:1; display:flex; align-items:center; gap:10px;">
-                    <img src="${logo1}" style="width:35px; height:35px; object-fit:contain;" onerror="this.src='${getLogo(m.team1)}'">
-                    <span style="font-size:12px; font-weight:bold;">${escapeHtml(m.team1)}</span>
-                </div>
-                <div style="width:80px; text-align:center;">
-                    <div style="font-size:16px; font-weight:bold; color:#00ff88;">${m.score1} : ${m.score2}</div>
-                    <div style="font-size:9px; opacity:0.7;">${m.date}<br>${m.time}</div>
-                </div>
-                <div style="flex:1; display:flex; align-items:center; gap:10px; justify-content:flex-end;">
-                    <span style="font-size:12px; font-weight:bold;">${escapeHtml(m.team2)}</span>
-                    <img src="${logo2}" style="width:35px; height:35px; object-fit:contain;" onerror="this.src='${getLogo(m.team2)}'">
-                </div>
-            </div>
-            `;
-        }
-        matchesHtml += `</div>`;
-    }
-    
-    return `<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WDMAHJONG - Prediksi Bola</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Dashboard Izin Keluar Staf</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:linear-gradient(135deg,#0a0a1a,#0f0f2a);font-family:Arial,sans-serif;color:#fff;padding:20px;}
-.header{text-align:center;padding:20px;margin-bottom:20px;}
-.date-box{text-align:center;background:rgba(0,255,136,0.1);border:2px solid #0f0;border-radius:12px;padding:15px;margin:20px auto;width:90%;max-width:400px;color:#0f0;font-weight:bold;}
-.marquee{background:#0a0a1a;padding:12px;text-align:center;overflow:hidden;white-space:nowrap;border:2px solid #0f0;border-radius:12px;margin:20px auto;width:90%;}
-.marquee span{display:inline-block;animation:scroll 25s linear infinite;color:#0f0;}
-@keyframes scroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
-.filter-wrap{width:90%;margin:20px auto;}
-.filter-select{width:100%;padding:12px;background:#0a0a1a;border:2px solid #0f0;border-radius:10px;color:#0f0;font-weight:bold;}
-.league-block{width:90%;margin:20px auto;border:2px solid #0f0;border-radius:15px;overflow:hidden;background:rgba(0,0,0,0.3);}
-.league-header{background:#0a0a1a;padding:12px;text-align:center;border-bottom:1px solid #0f0;}
-.league-header strong{color:#0f0;font-size:14px;}
-.match-row{display:flex;align-items:center;padding:12px;border-bottom:1px solid #1a3a1a;}
-.match-row.even{background:rgba(0,255,136,0.05);}
-.team-left{flex:1;display:flex;align-items:center;gap:10px;}
-.team-right{flex:1;display:flex;align-items:center;gap:10px;justify-content:flex-end;}
-.team-logo{width:35px;height:35px;object-fit:contain;}
-.team-name{font-size:13px;font-weight:bold;}
-.score-center{width:90px;text-align:center;}
-.score{font-size:18px;font-weight:bold;color:#0f0;}
-.datetime{font-size:9px;opacity:0.7;}
-@media(max-width:600px){.team-name{font-size:10px;}.team-logo{width:25px;height:25px;}.score{font-size:14px;}}
+:root{
+  --bg-deep:#070b1e;--bg-primary:#0c1130;--bg-card:#111740;--bg-card2:#161d4a;
+  --border:#1c2558;--border-light:#263070;
+  --accent:#d4a520;--accent-glow:rgba(212,165,32,.15);
+  --danger:#ef4444;--danger-glow:rgba(239,68,68,.12);
+  --success:#22c55e;--success-glow:rgba(34,197,94,.12);
+  --info:#38bdf8;--info-glow:rgba(56,189,248,.12);
+  --text-primary:#eeeef5;--text-secondary:#8890b8;--text-muted:#556085;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg-deep);color:var(--text-primary);overflow-x:hidden;min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg-primary)}::-webkit-scrollbar-thumb{background:var(--border-light);border-radius:3px}
+
+.bg-wall{position:fixed;inset:0;z-index:0;background:url('https://cdn.areabermain.club/assets/cdn/az5/2026/03/02/20260302/997f37bf3bc90016a5e32ae52406c5c4/background-web-hokbentoto-1.jpg') center/cover no-repeat}
+.bg-over{position:fixed;inset:0;z-index:1;background:linear-gradient(135deg,rgba(7,11,30,.93),rgba(12,17,48,.89),rgba(7,11,30,.95))}
+
+@keyframes pulseOT{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.35)}50%{box-shadow:0 0 0 10px rgba(239,68,68,0)}}
+.ot-pulse{animation:pulseOT 2s ease-in-out infinite}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.anim-in{animation:fadeUp .35s ease-out forwards}
+@keyframes slideR{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideRO{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(50px)}}
+@keyframes glowPulse{0%,100%{opacity:.6}50%{opacity:1}}
+.glow-pulse{animation:glowPulse 2s ease-in-out infinite}
+
+.fi{width:100%;padding:10px 14px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.fi:focus{border-color:var(--accent)}.fi::placeholder{color:var(--text-muted)}
+.fi-sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238890b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;cursor:pointer}
+.fi-sel option{background:var(--bg-card);color:var(--text-primary)}
+
+.btn{padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-p{background:var(--accent);color:#070b1e}.btn-p:hover:not(:disabled){background:#b8900e}
+.btn-s{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}.btn-s:hover:not(:disabled){border-color:var(--border-light);color:var(--text-primary)}
+.btn-d{background:var(--danger);color:#fff}.btn-d:hover:not(:disabled){background:#dc2626}
+.btn-g{background:var(--success);color:#fff}.btn-g:hover:not(:disabled){background:#16a34a}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:6px}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-leader{background:rgba(212,165,32,.15);color:#d4a520}
+.b-csline{background:rgba(16,185,129,.15);color:#10b981}
+.b-cslive{background:rgba(56,189,248,.15);color:#38bdf8}
+.b-kks{background:rgba(244,63,94,.15);color:#f43f5e}
+.b-kasir{background:rgba(249,115,22,.15);color:#f97316}
+.b-merokok{background:rgba(249,115,22,.15);color:#f97316}
+.b-istirahat{background:rgba(56,189,248,.15);color:#38bdf8}
+.b-ot{background:rgba(239,68,68,.15);color:#ef4444}
+.b-ok{background:rgba(34,197,94,.15);color:#22c55e}
+.b-pagi{background:rgba(251,191,36,.15);color:#fbbf24}
+.b-sore{background:rgba(251,146,60,.15);color:#fb923c}
+.b-malam{background:rgba(129,140,248,.15);color:#818cf8}
+
+.dtable{width:100%;border-collapse:separate;border-spacing:0}
+.dtable th{background:var(--bg-primary);color:var(--text-secondary);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.dtable td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px}
+.dtable tr:hover td{background:var(--bg-card2)}
+
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px;transition:all .25s;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.stat-card:hover{border-color:var(--border-light);transform:translateY(-2px)}
+.stat-card.sc-accent::before{background:var(--accent)}.stat-card.sc-danger::before{background:var(--danger)}
+.stat-card.sc-success::before{background:var(--success)}.stat-card.sc-info::before{background:var(--info)}
+
+.timer-bar{height:4px;border-radius:2px;background:var(--border);overflow:hidden}
+.timer-fill{height:100%;border-radius:2px;transition:width 1s linear}
+
+.nav-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.nav-btn.active{background:var(--accent-glow);border-color:var(--accent);color:var(--accent)}
+
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:2000;display:flex;align-items:center;justify-content:center}
+.modal-box{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;width:92%;max-width:480px;animation:fadeUp .25s ease-out}
+
+.toast-c{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:12px 18px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);backdrop-filter:blur(12px);animation:slideR .3s ease-out forwards;max-width:340px;font-size:13px;pointer-events:auto}
+.toast.out{animation:slideRO .3s ease-out forwards}
+
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;z-index:10}
+.login-box{width:100%;max-width:420px;animation:fadeUp .4s ease-out}
+
+.shift-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;transition:all .25s;position:relative;overflow:hidden}
+.shift-card:hover{border-color:var(--border-light);transform:translateY(-2px)}
+.shift-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.shift-card.sc-pagi::before{background:#fbbf24}.shift-card.sc-sore::before{background:#fb923c}.shift-card.sc-malam::before{background:#818cf8}
+
+.staff-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:var(--bg-primary);border:1px solid var(--border);transition:all .2s}
+.staff-row:hover{border-color:var(--border-light)}
+
+@media(max-width:768px){.stat-grid{grid-template-columns:1fr 1fr!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
-<div class="header"><h1 style="color:#0f0;">WDMAHJONG</h1><p>Prediksi Skor Akurat</p></div>
-<div class="date-box">📅 ${dateStr}</div>
-<div class="marquee"><span>🔥 PREDIKSI BOLA TERUPDATE! Daftar di WDMAHJONG sekarang! 🔥</span></div>
-<div class="filter-wrap"><select class="filter-select" id="leagueFilter" onchange="filterLeague(this.value)"><option value="all">🏆 SEMUA LIGA</option>${leagues.map(l => `<option value="${escapeHtml(l.name)}">🏆 ${escapeHtml(l.name)}</option>`).join('')}</select></div>
-<div id="matchesContainer">${matchesHtml}</div>
+<div class="bg-wall"></div>
+<div class="bg-over"></div>
+<div class="toast-c" id="toastC"></div>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScr" class="login-wrap">
+<div class="login-box">
+  <div class="p-8 rounded-2xl" style="background:var(--bg-card);border:1px solid var(--border)">
+    <div class="text-center mb-6">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4" style="background:var(--accent-glow);border:1px solid rgba(212,165,32,.3)">
+        <i class="fa-solid fa-door-open text-xl" style="color:var(--accent)"></i>
+      </div>
+      <h1 class="font-['Outfit'] text-2xl font-extrabold tracking-tight mb-1">Izin Keluar Staf</h1>
+      <p class="text-xs" style="color:var(--text-secondary)">Login dengan Email & Password</p>
+    </div>
+    <div class="space-y-3">
+      <input type="email" id="loginEmail" class="fi" placeholder="Email Staf">
+      <input type="password" id="loginPass" class="fi" placeholder="Password" onkeydown="if(event.key==='Enter')handleLogin()">
+      <button onclick="handleLogin()" class="btn btn-p w-full justify-center"><i class="fa-solid fa-right-to-bracket"></i>Masuk</button>
+      <p id="loginError" class="text-xs text-center hidden" style="color:var(--danger)"></p>
+    </div>
+    <div class="mt-5 p-3 rounded-lg text-center" style="background:var(--bg-primary);border:1px solid var(--border)">
+      <p class="text-[10px]" style="color:var(--text-muted)">Default Leader: leader@izinstaf.com / leader123</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashScr" class="hidden min-h-screen relative" style="z-index:10">
+<div class="max-w-6xl mx-auto p-4 md:p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-5 p-4 rounded-xl" style="background:var(--bg-card);border:1px solid var(--border)">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:var(--accent-glow)"><i class="fa-solid fa-door-open text-xs" style="color:var(--accent)"></i></div>
+      <div>
+        <div class="font-['Outfit'] font-bold text-sm" id="hdTitle">Dashboard</div>
+        <div class="text-[10px]" style="color:var(--text-muted)" id="hdSub">Sistem Izin Keluar Staf</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="hdRole" class="badge"></span>
+      <span class="text-xs font-medium" id="hdName"></span>
+      <button onclick="doLogout()" class="btn btn-s btn-sm" title="Keluar"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="flex flex-wrap gap-2 mb-5" id="navMenu"></div>
+
+  <!-- Content -->
+  <div id="mainC"></div>
+
+  <!-- Footer -->
+  <div class="text-center mt-6 text-[10px]" style="color:var(--text-muted)">
+    Sistem Izin Keluar Staf &mdash; Merokok 20 menit | Istirahat 15 menit &mdash; Data tersimpan realtime Firebase
+  </div>
+</div>
+</div>
+
+<!-- ===== MODAL CONTAINER ===== -->
+<div id="modalC"></div>
+
 <script>
-function filterLeague(val){
-    document.querySelectorAll('.league-block').forEach(block=>{
-        const leagueName = block.querySelector('.league-header strong')?.innerText.replace('🏆','').trim();
-        block.style.display = (val==='all' || leagueName===val) ? '' : 'none';
+// ============================================
+// KONFIGURASI FIREBASE
+// ============================================
+const firebaseConfig={
+  apiKey:"AIzaSyBAxo25KJy_XTIZBGYOh_XMTcn0w73yiYM",
+  authDomain:"izinstaf-82315.firebaseapp.com",
+  projectId:"izinstaf-82315",
+  storageBucket:"izinstaf-82315.firebasestorage.app",
+  messagingSenderId:"984406077560",
+  appId:"1:984406077560:web:79501d7cd9d86062983d8d",
+  measurementId:"G-25WVSLDCK4"
+};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+// ============================================
+// KONSTANTA
+// ============================================
+const PANELS=[
+  {id:'LEADER',label:'Leader',icon:'fa-crown',color:'#d4a520',css:'b-leader'},
+  {id:'CS LINE',label:'CS LINE',icon:'fa-headset',color:'#10b981',css:'b-csline'},
+  {id:'CS LiveChat',label:'CS LiveChat',icon:'fa-comments',color:'#38bdf8',css:'b-cslive'},
+  {id:'KKS',label:'KKS',icon:'fa-clipboard-check',color:'#f43f5e',css:'b-kks'},
+  {id:'KASIR',label:'KASIR',icon:'fa-cash-register',color:'#f97316',css:'b-kasir'},
+];
+
+const SHIFT_CONFIGS={
+  '10':[
+    {id:'Pagi',label:'Pagi',start:'07:45',end:'15:45',css:'b-pagi',icon:'fa-sun',cardCss:'sc-pagi'},
+    {id:'Sore',label:'Sore',start:'15:45',end:'01:45',css:'b-sore',icon:'fa-cloud-sun',cardCss:'sc-sore'},
+    {id:'Malam',label:'Malam',start:'21:45',end:'07:45',css:'b-malam',icon:'fa-moon',cardCss:'sc-malam'},
+  ],
+  '12':[
+    {id:'Pagi',label:'Pagi',start:'07:45',end:'19:45',css:'b-pagi',icon:'fa-sun',cardCss:'sc-pagi'},
+    {id:'Sore',label:'Sore',start:'15:45',end:'03:45',css:'b-sore',icon:'fa-cloud-sun',cardCss:'sc-sore'},
+    {id:'Malam',label:'Malam',start:'19:45',end:'07:45',css:'b-malam',icon:'fa-moon',cardCss:'sc-malam'},
+  ]
+};
+
+const PI=id=>PANELS.find(p=>p.id===id)||PANELS[0];
+const getShiftList=()=>SHIFT_CONFIGS[GS.shiftMode]||SHIFT_CONFIGS['10'];
+const SI=id=>getShiftList().find(s=>s.id===id)||getShiftList()[0];
+const isL=()=>CU&&CU.role==='LEADER';
+const isCSL=()=>CU&&CU.role==='CS LINE';
+const canEditShift=()=>isL()||isCSL();
+const canEditJD=()=>isL()||(isCSL()&&GS.csAccess.canEditJobdesk);
+const todayKey=()=>new Date().toISOString().slice(0,10);
+const yesterdayKey=()=>{const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10)};
+function fmtTime(ms){const t=Math.floor(Math.abs(ms)/1000);return `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`}
+function fmtDT(ts){return new Date(ts).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})+' '+new Date(ts).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}
+function fmtT(ts){return new Date(ts).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function getDur(type){return type==='merokok'?20*60*1000:15*60*1000}
+
+// ============================================
+// STATE GLOBAL
+// ============================================
+let CU=null;       // Current User
+let GS={           // Global State
+  shiftMode:'10',
+  csAccess:{canEditJobdesk:true,canViewOtherPanel:false},
+  tab:'home'
+};
+let staffList=[];
+let izinRecords=[];
+let timerInt=null;
+
+// ============================================
+// FIREBASE CRUD
+// ============================================
+async function loadStaff(){
+  try{
+    const snap=await db.collection("staff").get();
+    staffList=[];snap.forEach(d=>staffList.push({id:d.id,...d.data()}));
+  }catch(e){console.error("Load staff err:",e)}
+}
+
+async function loadIzin(){
+  try{
+    const snap=await db.collection("izin_records").orderBy("timestamp","desc").limit(500).get();
+    izinRecords=[];snap.forEach(d=>izinRecords.push({id:d.id,...d.data()}));
+  }catch(e){console.error("Load izin err:",e)}
+}
+
+async function saveIzin(rec){
+  try{
+    const ref=await db.collection("izin_records").add({...rec,timestamp:Date.now()});
+    izinRecords.unshift({...rec,id:ref.id,timestamp:Date.now()});
+    return ref.id;
+  }catch(e){console.error("Save izin err:",e);throw e}
+}
+
+async function updateIzin(id,data){
+  try{
+    await db.collection("izin_records").doc(id).update(data);
+    const i=izinRecords.findIndex(r=>r.id===id);
+    if(i!==-1)Object.assign(izinRecords[i],data);
+  }catch(e){console.error("Update izin err:",e)}
+}
+
+async function deleteIzin(id){
+  try{await db.collection("izin_records").doc(id).delete();
+    izinRecords=izinRecords.filter(r=>r.id!==id);
+  }catch(e){console.error("Delete izin err:",e)}
+}
+
+async function loadSettings(){
+  try{
+    const doc=await db.collection("settings").doc("config").get();
+    if(doc.exists){const d=doc.data();GS.shiftMode=d.shiftMode||'10';GS.csAccess=d.csAccess||{canEditJobdesk:true,canViewOtherPanel:false}}
+  }catch(e){console.error("Load settings err:",e)}
+}
+
+async function saveSettings(){
+  try{await db.collection("settings").doc("config").set({shiftMode:GS.shiftMode,csAccess:GS.csAccess})}
+  catch(e){console.error("Save settings err:",e)}
+}
+
+// ============================================
+// TOAST
+// ============================================
+function toast(msg,type='info'){
+  const c=document.getElementById('toastC');
+  const t=document.createElement('div');
+  const cols={info:'border-l-4 border-l-sky-400',success:'border-l-4 border-l-green-400',danger:'border-l-4 border-l-red-400',warning:'border-l-4 border-l-amber-400'};
+  const icons={info:'fa-circle-info text-sky-400',success:'fa-circle-check text-green-400',danger:'fa-circle-exclamation text-red-400',warning:'fa-triangle-exclamation text-amber-400'};
+  t.className=`toast ${cols[type]||cols.info}`;
+  t.innerHTML=`<div class="flex items-center gap-3"><i class="fa-solid ${icons[type]||icons.info}"></i><span>${msg}</span></div>`;
+  c.appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),300)},4000);
+}
+
+// ============================================
+// MODAL
+// ============================================
+function showModal(title,body,onOk,okText='Konfirmasi',okClass='btn-d'){
+  const o=document.createElement('div');o.className='modal-bg';o.id='_modal';
+  o.innerHTML=`<div class="modal-box">
+    <div class="flex items-center gap-3 mb-4"><div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--accent-glow)"><i class="fa-solid fa-pen-to-square" style="color:var(--accent)"></i></div><h3 class="font-['Outfit'] font-bold">${title}</h3></div>
+    <div class="mb-5">${body}</div>
+    <div class="flex gap-3 justify-end"><button class="btn btn-s" onclick="closeModal()">Batal</button><button class="btn ${okClass}" id="_mOk">${okText}</button></div>
+  </div>`;
+  document.getElementById('modalC').appendChild(o);
+  o.querySelector('#_mOk').onclick=()=>{closeModal();onOk()};
+  o.addEventListener('click',e=>{if(e.target===o)closeModal()});
+}
+function closeModal(){const m=document.getElementById('_modal');if(m)m.remove()}
+
+// ============================================
+// LOGIN / LOGOUT
+// ============================================
+async function handleLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value.trim();
+  const errEl=document.getElementById('loginError');
+  errEl.classList.add('hidden');
+
+  if(!email||!pass){errEl.textContent='Isi email dan password';errEl.classList.remove('hidden');return}
+
+  try{
+    const cred=await auth.signInWithEmailAndPassword(email,pass);
+    const uid=cred.user.uid;
+    const doc=await db.collection("staff").doc(uid).get();
+
+    if(!doc.exists)throw new Error('Akun tidak terdaftar di data staf. Hubungi Leader.');
+
+    const data=doc.data();
+    CU={uid,email:data.email,role:data.role,name:data.name,shift:data.shift||'Pagi'};
+
+    document.getElementById('loginScr').classList.add('hidden');
+    document.getElementById('dashScr').classList.remove('hidden');
+
+    const pi=PI(CU.role);
+    document.getElementById('hdRole').textContent=pi.label;
+    document.getElementById('hdRole').className=`badge ${pi.css}`;
+    document.getElementById('hdName').textContent=CU.name;
+
+    await Promise.all([loadStaff(),loadIzin(),loadSettings()]);
+    renderDash();
+    toast(`Selamat datang, ${CU.name}!`,'success');
+  }catch(err){
+    errEl.textContent=err.message;errEl.classList.remove('hidden');
+  }
+}
+
+function doLogout(){
+  auth.signOut();CU=null;
+  document.getElementById('dashScr').classList.add('hidden');
+  document.getElementById('loginScr').classList.remove('hidden');
+  document.getElementById('loginEmail').value='';document.getElementById('loginPass').value='';
+  if(timerInt)clearInterval(timerInt);
+}
+
+// ============================================
+// NAVIGASI
+// ============================================
+function getNavItems(){
+  if(!CU)return[];
+  if(isL())return[
+    {id:'home',icon:'fa-chart-pie',label:'Beranda'},
+    {id:'staff',icon:'fa-users-gear',label:'Kelola Staf'},
+    {id:'jobdesk',icon:'fa-list-check',label:'Jobdesk & Shift'},
+    {id:'izin',icon:'fa-door-open',label:'Izin Keluar'},
+    {id:'riwayat',icon:'fa-clock-rotate-left',label:'Riwayat'},
+    {id:'kemarin',icon:'fa-calendar-day',label:'Data Kemarin'},
+    {id:'settings',icon:'fa-gear',label:'Pengaturan'},
+  ];
+  if(isCSL())return[
+    {id:'izin',icon:'fa-door-open',label:'Izin Keluar'},
+    {id:'jobdesk',icon:'fa-list-check',label:'Jobdesk & Shift'},
+    {id:'riwayat',icon:'fa-clock-rotate-left',label:'Riwayat'},
+    {id:'kemarin',icon:'fa-calendar-day',label:'Data Kemarin'},
+  ];
+  // CS LiveChat, KKS, KASIR
+  return[
+    {id:'izin',icon:'fa-door-open',label:'Izin Keluar'},
+    {id:'jobdesk',icon:'fa-list-check',label:'Jobdesk & Shift'},
+  ];
+}
+
+function renderNav(){
+  const items=getNavItems();
+  document.getElementById('navMenu').innerHTML=items.map(i=>`
+    <button class="nav-btn ${GS.tab===i.id?'active':''}" onclick="goTab('${i.id}')">
+      <i class="fa-solid ${i.icon}"></i>${i.label}
+    </button>`).join('');
+}
+
+function goTab(id){GS.tab=id;renderDash()}
+
+// ============================================
+// RENDER DASHBOARD
+// ============================================
+function renderDash(){
+  renderNav();
+  const m=document.getElementById('mainC');
+  const pi=PI(CU?.role);
+  document.getElementById('hdTitle').textContent=pi.label+' Dashboard';
+
+  switch(GS.tab){
+    case'home':m.innerHTML=rHome();break;
+    case'staff':m.innerHTML=rStaff();break;
+    case'jobdesk':m.innerHTML=rJobdesk();break;
+    case'izin':m.innerHTML=rIzin();bindIzin();break;
+    case'riwayat':m.innerHTML=rRiwayat();break;
+    case'kemarin':m.innerHTML=rKemarin();break;
+    case'settings':m.innerHTML=rSettings();bindSettings();break;
+    default:m.innerHTML=rHome();
+  }
+}
+
+// ============================================
+// BERANDA (LEADER)
+// ============================================
+function rHome(){
+  if(!isL())return'<p>Akses ditolak.</p>';
+  const active=izinRecords.filter(r=>r.status==='keluar');
+  const otNow=active.filter(r=>Date.now()-r.timestampKeluar>r.durasiMenit*60000);
+  const today=todayKey();
+  const todayRecs=izinRecords.filter(r=>r.startDate===today);
+  const tk=todayKey();const att=GS.attendance||{};const todayAtt=att[tk]||{};
+
+  return `<div class="anim-in">
+    <div class="stat-grid grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="stat-card sc-accent"><div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2" style="background:var(--accent-glow)"><i class="fa-solid fa-users text-xs" style="color:var(--accent)"></i></div><div class="font-['Outfit'] text-3xl font-extrabold">${staffList.length}</div><div class="text-[11px]" style="color:var(--text-secondary)">Total Staf</div></div>
+      <div class="stat-card sc-info"><div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2" style="background:var(--info-glow)"><i class="fa-solid fa-person-walking text-xs" style="color:var(--info)"></i></div><div class="font-['Outfit'] text-3xl font-extrabold">${active.length}</div><div class="text-[11px]" style="color:var(--text-secondary)">Sedang Keluar</div></div>
+      <div class="stat-card sc-danger"><div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2" style="background:var(--danger-glow)"><i class="fa-solid fa-clock text-xs" style="color:var(--danger)"></i></div><div class="font-['Outfit'] text-3xl font-extrabold" style="color:var(--danger)">${otNow.length}</div><div class="text-[11px]" style="color:var(--text-secondary)">Terlambat</div></div>
+      <div class="stat-card sc-success"><div class="w-9 h-9 rounded-lg flex items-center justify-center mb-2" style="background:var(--success-glow)"><i class="fa-solid fa-clipboard-list text-xs" style="color:var(--success)"></i></div><div class="font-['Outfit'] text-3xl font-extrabold">${todayRecs.length}</div><div class="text-[11px]" style="color:var(--text-secondary)">Izin Hari Ini</div></div>
+    </div>
+
+    <div class="mb-6"><h2 class="font-['Outfit'] text-base font-bold mb-3">Staf per Panel</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      ${PANELS.filter(p=>p.id!=='LEADER').map(p=>{
+        const cnt=staffList.filter(s=>s.role===p.id).length;
+        const ac=active.filter(a=>a.staffRole===p.id).length;
+        const oc=active.filter(a=>a.staffRole===p.id&&Date.now()-a.timestampKeluar>a.durasiMenit*60000).length;
+        return `<div class="p-4 rounded-xl" style="background:var(--bg-card);border:1px solid var(--border)">
+          <div class="flex items-center gap-2 mb-2"><div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:${p.color}20"><i class="fa-solid ${p.icon} text-[10px]" style="color:${p.color}"></i></div><span class="font-['Outfit'] font-semibold text-xs">${p.label}</span></div>
+          <div class="text-2xl font-['Outfit'] font-extrabold">${cnt}</div><div class="text-[10px]" style="color:var(--text-secondary)">staf</div>
+          ${ac?`<div class="text-[10px] mt-1" style="color:var(--info)"><i class="fa-solid fa-person-walking mr-1"></i>${ac} keluar</div>`:''}
+          ${oc?`<div class="text-[10px]" style="color:var(--danger)"><i class="fa-solid fa-clock mr-1"></i>${oc} terlambat</div>`:''}
+        </div>`}).join('')}
+    </div></div>
+
+    <h2 class="font-['Outfit'] text-base font-bold mb-3">Izin Aktif Sekarang</h2>
+    ${active.length===0?`<div class="p-6 rounded-xl text-center" style="background:var(--bg-card);border:1px solid var(--border)"><i class="fa-solid fa-check-circle text-2xl mb-2" style="color:var(--success)"></i><p class="text-xs" style="color:var(--text-secondary)">Semua staf di tempat.</p></div>`
+    :`<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${active.map(p=>permitCard(p)).join('')}</div>`}
+
+    <div class="mt-6 flex gap-3">
+      <button onclick="refreshData()" class="btn btn-s btn-sm"><i class="fa-solid fa-sync"></i>Refresh Data</button>
+    </div>
+  </div>`;
+}
+
+function permitCard(p){
+  const elapsed=Date.now()-p.timestampKeluar;
+  const durMs=p.durasiMenit*60000;
+  const rem=durMs-elapsed,isOT=rem<=0;
+  const prog=Math.min(100,(elapsed/durMs)*100);
+  const pi=PI(p.staffRole||'CS LINE');
+
+  return `<div class="p-4 rounded-xl ${isOT?'ot-pulse':''}" style="background:var(--bg-card);border:1px solid ${isOT?'rgba(239,68,68,.4)':'var(--border)'}">
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center font-['Outfit'] font-bold text-sm" style="background:${pi.color}20;color:${pi.color}">${(p.staffName||'?').charAt(0)}</div>
+        <div><div class="font-semibold text-sm">${p.staffName}</div>
+          <div class="flex items-center gap-1.5 mt-0.5"><span class="badge ${pi.css}" style="font-size:10px">${pi.label}</span><span class="badge ${p.tujuan==='Merokok'?'b-merokok':'b-istirahat'}" style="font-size:10px"><i class="fa-solid ${p.tujuan==='Merokok'?'fa-smoking':'fa-mug-hot'} mr-1"></i>${p.tujuan}</span></div>
+        </div>
+      </div>
+      ${isOT?'<span class="badge b-ot glow-pulse" style="font-size:10px">TERLAMBAT</span>':'<span class="badge b-ok" style="font-size:10px">AKTIF</span>'}
+    </div>
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-[11px]" style="color:var(--text-muted)">Keluar: ${p.waktuKeluar}</span>
+      <span class="font-['Outfit'] font-bold text-lg" style="color:${isOT?'var(--danger)':'var(--text-primary)'}" data-timer="${p.id}">${isOT?'+':''}${fmtTime(rem)}</span>
+    </div>
+    <div class="timer-bar mb-3"><div class="timer-fill" style="width:${prog}%;background:${isOT?'var(--danger)':prog>75?'#f59e0b':'var(--success)'}"></div></div>
+    ${!isL()?`<button onclick="retPermit('${p.id}')" class="btn btn-g w-full justify-center btn-sm"><i class="fa-solid fa-right-to-bracket"></i>Sudah Kembali</button>`:''}
+  </div>`;
+}
+
+// ============================================
+// IZIN KELUAR (Leader TIDAK bisa isi)
+// ============================================
+function rIzin(){
+  if(isL())return `<div class="anim-in"><div class="p-10 rounded-xl text-center" style="background:var(--bg-card);border:1px solid var(--border)">
+    <div class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:var(--accent-glow)"><i class="fa-solid fa-lock text-2xl" style="color:var(--accent)"></i></div>
+    <p class="font-['Outfit'] font-semibold text-lg mb-1">Akses Terbatas untuk Leader</p>
+    <p class="text-sm" style="color:var(--text-secondary)">Leader tidak dapat mengisi jam izin keluar.</p></div></div>`;
+
+  const me=staffList.find(s=>s.uid===CU.uid);
+  if(!me)return `<div class="anim-in"><div class="p-6 rounded-xl text-center" style="background:var(--bg-card);border:1px solid var(--border);color:var(--danger)">Data staf tidak ditemukan. Hubungi Leader.</div></div>`;
+
+  const myActive=izinRecords.find(r=>r.staffId===CU.uid&&r.status==='keluar');
+  const sl=getShiftList();
+  const myShift=SI(me.shift||'Pagi');
+
+  return `<div class="anim-in">
+    <div class="p-5 rounded-xl mb-5" style="background:var(--bg-card);border:1px solid var(--border)">
+      <h3 class="font-['Outfit'] font-semibold text-sm mb-1"><i class="fa-solid fa-user mr-2" style="color:var(--accent)"></i>${me.name}</h3>
+      <div class="flex items-center gap-2 text-xs" style="color:var(--text-secondary)">
+        <span class="badge ${PI(me.role).css}" style="font-size:10px">${PI(me.role).label}</span>
+        <span class="badge ${myShift.css}" style="font-size:10px"><i class="fa-solid ${myShift.icon} mr-1"></i>Shift ${myShift.label} (${myShift.start} - ${myShift.end})</span>
+      </div>
+    </div>
+
+    ${myActive?`
+    <div class="p-5 rounded-xl mb-5" style="background:var(--bg-card);border:1px solid var(--border)">
+      <h3 class="font-['Outfit'] font-semibold text-sm mb-3"><i class="fa-solid fa-hourglass-half mr-2" style="color:var(--accent)"></i>Izin Sedang Berjalan</h3>
+      <div class="p-4 rounded-xl" style="background:var(--bg-primary);border:1px solid var(--border)">
+        <div class="flex items-center justify-between mb-2">
+          <span class="badge ${myActive.tujuan==='Merokok'?'b-merokok':'b-istirahat'}">${myActive.tujuan} (${myActive.durasiMenit} menit)</span>
+          <span class="text-xs" style="color:var(--text-muted)">Keluar: ${myActive.waktuKeluar}</span>
+        </div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs" style="color:var(--text-secondary)">Estimasi kembali: ${myActive.estimasiKembali}</span>
+          <span class="font-['Outfit'] font-bold text-xl" id="myTimer" data-tid="${myActive.id}">--:--</span>
+        </div>
+        <div class="timer-bar mb-3"><div class="timer-fill" id="myTimerBar" style="width:0%"></div></div>
+        <button onclick="retPermit('${myActive.id}')" class="btn btn-g w-full justify-center"><i class="fa-solid fa-right-to-bracket"></i>Sudah Kembali</button>
+      </div>
+    </div>
+    `:`
+    <div class="p-5 rounded-xl mb-5" style="background:var(--bg-card);border:1px solid var(--border)">
+      <h3 class="font-['Outfit'] font-semibold text-sm mb-3"><i class="fa-solid fa-plus-circle mr-2" style="color:var(--accent)"></i>Buat Izin Keluar</h3>
+      <div class="space-y-4">
+        <div><label class="block text-xs font-medium mb-2" style="color:var(--text-secondary)">Jenis Izin</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="cursor-pointer"><input type="radio" name="izType" value="merokok" class="hidden peer">
+              <div class="p-4 rounded-xl text-center border-2 transition-all peer-checked:border-orange-500 peer-checked:bg-orange-500/10" style="border-color:var(--border);background:var(--bg-primary)">
+                <i class="fa-solid fa-smoking text-xl mb-1" style="color:#f97316"></i><div class="font-['Outfit'] font-semibold text-xs">Merokok</div><div class="text-[10px]" style="color:var(--text-muted)">20 menit</div>
+              </div></label>
+            <label class="cursor-pointer"><input type="radio" name="izType" value="tidak_merokok" class="hidden peer">
+              <div class="p-4 rounded-xl text-center border-2 transition-all peer-checked:border-sky-500 peer-checked:bg-sky-500/10" style="border-color:var(--border);background:var(--bg-primary)">
+                <i class="fa-solid fa-mug-hot text-xl mb-1" style="color:#38bdf8"></i><div class="font-['Outfit'] font-semibold text-xs">Istirahat</div><div class="text-[10px]" style="color:var(--text-muted)">15 menit</div>
+              </div></label>
+          </div></div>
+        <button id="startIzinBtn" class="btn btn-p w-full justify-center" disabled><i class="fa-solid fa-play"></i>Mulai Izin Keluar</button>
+        <p id="izinWarn" class="text-xs hidden" style="color:var(--danger)"></p>
+      </div>
+    </div>
+    `}
+  </div>`;
+}
+
+function bindIzin(){
+  const radios=document.querySelectorAll('input[name="izType"]');
+  const btn=document.getElementById('startIzinBtn');
+  if(!btn)return;
+
+  radios.forEach(r=>r.addEventListener('change',()=>{btn.disabled=false}));
+
+  btn.addEventListener('click',async()=>{
+    const sel=document.querySelector('input[name="izType"]:checked');
+    if(!sel){toast('Pilih jenis izin!','warning');return}
+
+    const type=sel.value;
+    const durMenit=type==='merokok'?20:15;
+    const now=new Date();
+    const rec={
+      staffId:CU.uid,staffName:CU.name,staffRole:CU.role,
+      tujuan:type==='merokok'?'Merokok':'Tidak Merokok',
+      durasiMenit:durMenit,
+      waktuKeluar:now.toLocaleTimeString('id-ID'),
+      startDate:now.toISOString().slice(0,10),
+      estimasiKembali:new Date(now.getTime()+durMenit*60000).toLocaleTimeString('id-ID'),
+      status:'keluar',terlambat:false,
+      timestampKeluar:now.getTime(),waktuKembali:null
+    };
+
+    try{
+      await saveIzin(rec);
+      await loadIzin();
+      GS.tab='izin';renderDash();
+      toast('Izin keluar berhasil dibuat!','success');
+    }catch(e){toast('Gagal menyimpan: '+e.message,'danger')}
+  });
+}
+
+async function retPermit(id){
+  const rec=izinRecords.find(r=>r.id===id);if(!rec)return;
+  const now=new Date();
+  const elapsed=now.getTime()-rec.timestampKeluar;
+  const durMs=rec.durasiMenit*60000;
+  const isOT=elapsed>durMs;
+
+  await updateIzin(id,{
+    status:isOT?'selesai_terlambat':'selesai',
+    terlambat:isOT,
+    waktuKembali:now.toLocaleTimeString('id-ID'),
+    overtimeMs:isOT?elapsed-durMs:0
+  });
+  await loadIzin();
+  if(isOT)toast(`${rec.staffName} kembali terlambat +${fmtTime(elapsed-durMs)}!`,'danger');
+  else toast(`${rec.staffName} kembali tepat waktu.`,'success');
+  renderDash();
+}
+
+// ============================================
+// KELOLA STAF (Leader only)
+// ============================================
+function rStaff(){
+  if(!isL())return'<p>Akses ditolak.</p>';
+  const sl=getShiftList();
+
+  return `<div class="anim-in">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="font-['Outfit'] text-lg font-bold">Manajemen Staf</h2>
+      <button onclick="showAddStaff()" class="btn btn-p btn-sm"><i class="fa-solid fa-user-plus"></i>Tambah Staf</button>
+    </div>
+    ${PANELS.filter(p=>p.id!=='LEADER').map(p=>{
+      const ps=staffList.filter(s=>s.role===p.id);
+      if(ps.length===0)return'';
+      return `<div class="mb-5">
+        <div class="flex items-center gap-2 mb-3"><div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:${p.color}20"><i class="fa-solid ${p.icon} text-[10px]" style="color:${p.color}"></i></div><h3 class="font-['Outfit'] font-semibold text-sm">${p.label}</h3><span class="badge" style="font-size:10px;background:var(--bg-primary);color:var(--text-muted)">${ps.length}</span></div>
+        <div class="rounded-xl overflow-x-auto" style="background:var(--bg-card);border:1px solid var(--border)"><table class="dtable"><thead><tr><th>Nama</th><th>Email</th><th>Shift</th><th>Aksi</th></tr></thead><tbody>
+        ${ps.map(s=>{
+          const si=SI(s.shift||'Pagi');
+          return `<tr><td><div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold" style="background:${p.color}20;color:${p.color}">${(s.name||'?').charAt(0)}</div><span class="font-semibold text-xs">${s.name}</span></div></td>
+          <td class="text-xs" style="color:var(--text-muted)">${s.email}</td>
+          <td><select class="fi fi-sel text-[10px]" style="width:auto;padding:3px 24px 3px 6px" onchange="chShift('${s.id}',this.value)">${sl.map(x=>`<option value="${x.id}" ${s.shift===x.id?'selected':''}>${x.label} (${x.start}-${x.end})</option>`).join('')}</select></td>
+          <td><button onclick="editStaffModal('${s.id}')" class="btn btn-s btn-sm"><i class="fa-solid fa-pen"></i></button> <button onclick="delStaff('${s.id}')" class="btn btn-d btn-sm"><i class="fa-solid fa-trash"></i></button></td></tr>`}).join('')}
+        </tbody></table></div></div>`;
+    }).join('')}
+  </div>`;
+}
+
+async function chShift(sid,val){
+  try{await db.collection("staff").doc(sid).update({shift:val});await loadStaff();toast('Shift diperbarui.','success');renderDash()}catch(e){toast('Gagal: '+e.message,'danger')}
+}
+
+function showAddStaff(){
+  const sl=getShiftList();
+  showModal('Tambah Staf Baru',`
+    <div class="space-y-3">
+      <input type="text" id="nsName" class="fi" placeholder="Nama Staf">
+      <input type="email" id="nsEmail" class="fi" placeholder="Email (harus unik)">
+      <input type="password" id="nsPass" class="fi" placeholder="Password (min 6 karakter)">
+      <select id="nsRole" class="fi fi-sel">${PANELS.filter(p=>p.id!=='LEADER').map(p=>`<option value="${p.id}">${p.label}</option>`).join('')}</select>
+      <select id="nsShift" class="fi fi-sel">${sl.map(s=>`<option value="${s.id}">${s.label} (${s.start}-${s.end})</option>`).join('')}</select>
+    </div>`,async()=>{
+    const n=document.getElementById('nsName').value.trim();
+    const e=document.getElementById('nsEmail').value.trim();
+    const p=document.getElementById('nsPass').value;
+    const r=document.getElementById('nsRole').value;
+    const sh=document.getElementById('nsShift').value;
+    if(!n||!e||!p){toast('Isi semua field!','warning');return}
+    try{
+      const cred=await auth.createUserWithEmailAndPassword(e,p);
+      await db.collection("staff").doc(cred.user.uid).set({uid:cred.user.uid,name:n,email:e,role:r,shift:sh,createdAt:new Date().toISOString()});
+      await loadStaff();renderDash();toast(`Staf "${n}" ditambahkan!`,'success');
+      // Logout dari akun baru, login kembali sebagai Leader
+      await auth.signOut();
+      // Leader perlu re-login, tapi kita simpan state
+    }catch(err){toast('Error: '+err.message,'danger')}
+  },'Tambah Staf','btn-p');
+}
+
+function editStaffModal(sid){
+  const s=staffList.find(x=>x.id===sid);if(!s)return;
+  showModal('Edit Staf',`
+    <div class="space-y-3">
+      <input type="text" id="esName" class="fi" value="${s.name||''}">
+      <select id="esRole" class="fi fi-sel">${PANELS.map(p=>`<option value="${p.id}" ${s.role===p.id?'selected':''}>${p.label}</option>`).join('')}</select>
+    </div>`,async()=>{
+    const n=document.getElementById('esName').value.trim();
+    const r=document.getElementById('esRole').value;
+    if(!n){toast('Nama wajib diisi!','warning');return}
+    try{await db.collection("staff").doc(sid).update({name:n,role:r});await loadStaff();renderDash();toast('Staf diperbarui.','success')}catch(e){toast('Gagal: '+e.message,'danger')}
+  },'Simpan','btn-p');
+}
+
+async function delStaff(sid){
+  showModal('Hapus Staf','<p class="text-sm" style="color:var(--text-secondary)">Yakin ingin menghapus staf ini? Akun auth juga akan dihapus.</p>',async()=>{
+    try{await db.collection("staff").doc(sid).delete();await loadStaff();renderDash();toast('Staf dihapus.','info')}catch(e){toast('Gagal: '+e.message,'danger')}
+  },'Hapus','btn-d');
+}
+
+// ============================================
+// JOBDESK & SHIFT
+// ============================================
+function rJobdesk(){
+  const editable=canEditShift()||canEditJD();
+  const sl=getShiftList();
+
+  return `<div class="anim-in">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="font-['Outfit'] text-lg font-bold">Jobdesk & Shift Kerja</h2>
+      <span class="badge" style="font-size:10px;background:var(--bg-primary);color:var(--text-muted)">Mode ${GS.shiftMode} Jam</span>
+    </div>
+
+    ${canEditShift()?`<div class="p-4 rounded-xl mb-5 flex items-center gap-3" style="background:var(--accent-glow);border:1px solid rgba(212,165,32,.2)">
+      <i class="fa-solid fa-circle-info" style="color:var(--accent)"></i>
+      <p class="text-xs" style="color:var(--accent)">Anda dapat mengatur shift kerja. Gunakan dropdown pada staf untuk mengubah.</p>
+    </div>`:''}
+
+    <!-- Shift Cards -->
+    ${sl.map(sh=>`
+    <div class="mb-5">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--bg-card);border:1px solid var(--border)"><i class="fa-solid ${sh.icon}" style="color:var(--accent)"></i></div>
+        <div><h3 class="font-['Outfit'] font-bold text-sm">Shift ${sh.label}</h3><span class="badge ${sh.css}" style="font-size:10px">${sh.start} - ${sh.end}</span></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        ${PANELS.filter(p=>p.id!=='LEADER').map(p=>{
+          const sList=staffList.filter(s=>s.role===p.id&&(s.shift||'Pagi')===sh.id);
+          return `<div class="shift-card ${sh.cardCss}">
+            <div class="flex items-center gap-2 mb-3"><div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:${p.color}20"><i class="fa-solid ${p.icon} text-[10px]" style="color:${p.color}"></i></div><span class="font-['Outfit'] font-semibold text-xs">${p.label}</span></div>
+            ${sList.length===0?'<div class="text-[10px] p-2 rounded-lg text-center" style="color:var(--text-muted);background:var(--bg-primary);border:1px dashed var(--border)">Kosong</div>'
+            :`<div class="space-y-2">${sList.map(s=>`
+              <div class="staff-row">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0" style="background:${p.color}20;color:${p.color}">${(s.name||'?').charAt(0)}</div>
+                <div class="flex-1 min-w-0"><div class="text-[11px] font-semibold truncate">${s.name}</div></div>
+                ${canEditShift()?`<select class="fi fi-sel text-[9px] flex-shrink-0" style="width:auto;min-width:80px;padding:3px 20px 3px 6px" onchange="chShift('${s.id}',this.value)">${sl.map(x=>`<option value="${x.id}" ${s.shift===x.id?'selected':''}>${x.label}</option>`).join('')}</select>`:`<span class="badge ${SI(s.shift||'Pagi').css} flex-shrink-0" style="font-size:9px">${SI(s.shift||'Pagi').label}</span>`}
+              </div>`).join('')}</div>`}
+          </div>`}).join('')}
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ============================================
+// RIWAYAT IZIN
+// ============================================
+function rRiwayat(){
+  const all=izinRecords.filter(r=>r.status!=='keluar').sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  const visible=isL()?all:all.filter(r=>r.staffId===CU.uid);
+
+  return `<div class="anim-in">
+    <h2 class="font-['Outfit'] text-lg font-bold mb-5">Riwayat Izin</h2>
+    ${visible.length===0?`<div class="p-8 rounded-xl text-center" style="background:var(--bg-card);border:1px solid var(--border)"><i class="fa-solid fa-inbox text-2xl mb-2" style="color:var(--text-muted)"></i><p class="text-xs" style="color:var(--text-secondary)">Belum ada riwayat.</p></div>`
+    :`<div class="rounded-xl overflow-x-auto" style="background:var(--bg-card);border:1px solid var(--border)"><table class="dtable"><thead><tr><th>Nama</th><th>Panel</th><th>Tujuan</th><th>Keluar</th><th>Kembali</th><th>Status</th>${isL()?'<th>Aksi</th>':''}</tr></thead><tbody>
+    ${visible.map(r=>{
+      const pi=PI(r.staffRole||'CS LINE');
+      const statusHtml=r.terlambat?`<span class="badge b-ot" style="font-size:10px">Terlambat${r.overtimeMs?' +'+fmtTime(r.overtimeMs):''}</span>`:'<span class="badge b-ok" style="font-size:10px">Tepat Waktu</span>';
+      return `<tr><td><span class="font-semibold">${r.staffName}</span></td>
+        <td><span class="badge ${pi.css}" style="font-size:10px">${pi.label}</span></td>
+        <td><span class="badge ${r.tujuan==='Merokok'?'b-merokok':'b-istirahat'}" style="font-size:10px">${r.tujuan}</span></td>
+        <td style="color:var(--text-secondary)">${r.waktuKeluar}</td>
+        <td style="color:var(--text-secondary)">${r.waktuKembali||'-'}</td>
+        <td>${statusHtml}</td>
+        ${isL()?`<td><button onclick="delIzinRec('${r.id}')" class="btn btn-d btn-sm"><i class="fa-solid fa-trash"></i></button></td>`:''}</tr>`}).join('')}
+    </tbody></table></div>`}
+  </div>`;
+}
+
+async function delIzinRec(id){showModal('Hapus','<p class="text-sm" style="color:var(--text-secondary)">Hapus data izin ini?</p>',async()=>{await deleteIzin(id);renderDash();toast('Dihapus.','info')},'Hapus','btn-d')}
+
+// ============================================
+// DATA KEMARIN (Leader & CS LINE only)
+// ============================================
+function rKemarin(){
+  const yk=yesterdayKey();
+  const recs=izinRecords.filter(r=>r.startDate===yk);
+  const yDate=new Date(new Date().getTime()-86400000);
+
+  return `<div class="anim-in">
+    <h2 class="font-['Outfit'] text-lg font-bold mb-5">Data Kemarin (${yDate.toLocaleDateString('id-ID',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})})</h2>
+    ${recs.length===0?`<div class="p-8 rounded-xl text-center" style="background:var(--bg-card);border:1px solid var(--border)"><i class="fa-solid fa-calendar-xmark text-2xl mb-2" style="color:var(--text-muted)"></i><p class="text-xs" style="color:var(--text-secondary)">Tidak ada data kemarin.</p></div>`
+    :`<div class="rounded-xl overflow-x-auto" style="background:var(--bg-card);border:1px solid var(--border)"><table class="dtable"><thead><tr><th>Nama</th><th>Panel</th><th>Tujuan</th><th>Keluar</th><th>Kembali</th><th>Status</th></tr></thead><tbody>
+    ${recs.map(r=>{
+      const pi=PI(r.staffRole||'CS LINE');
+      const statusHtml=r.terlambat?`<span class="badge b-ot" style="font-size:10px">Terlambat</span>`:'<span class="badge b-ok" style="font-size:10px">Tepat</span>';
+      return `<tr><td>${r.staffName}</td><td><span class="badge ${pi.css}" style="font-size:10px">${pi.label}</span></td><td><span class="badge ${r.tujuan==='Merokok'?'b-merokok':'b-istirahat'}" style="font-size:10px">${r.tujuan}</span></td><td style="color:var(--text-secondary)">${r.waktuKeluar}</td><td style="color:var(--text-secondary)">${r.waktuKembali||'-'}</td><td>${statusHtml}</td></tr>`}).join('')}
+    </tbody></table></div>`}
+  </div>`;
+}
+
+// ============================================
+// PENGATURAN (Leader only)
+// ============================================
+function rSettings(){
+  if(!isL())return'<p>Akses ditolak.</p>';
+  const sl=getShiftList();
+  const a=GS.csAccess;
+
+  return `<div class="anim-in">
+    <h2 class="font-['Outfit'] text-lg font-bold mb-5">Pengaturan Dashboard</h2>
+
+    <!-- Mode Shift -->
+    <div class="p-5 rounded-xl mb-5" style="background:var(--bg-card);border:1px solid var(--border)">
+      <h3 class="font-['Outfit'] font-semibold text-sm mb-3"><i class="fa-solid fa-sliders mr-2" style="color:var(--accent)"></i>Mode Durasi Shift</h3>
+      <div class="flex gap-3 mb-4">
+        <button class="nav-btn ${GS.shiftMode==='10'?'active':''}" onclick="setShiftMode('10')"><i class="fa-solid fa-clock mr-2"></i>10 Jam</button>
+        <button class="nav-btn ${GS.shiftMode==='12'?'active':''}" onclick="setShiftMode('12')"><i class="fa-solid fa-clock mr-2"></i>12 Jam</button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        ${sl.map(sh=>`<div class="p-3 rounded-lg text-center" style="background:var(--bg-primary);border:1px solid var(--border)">
+          <div class="flex items-center justify-center gap-2 mb-1"><i class="fa-solid ${sh.icon} text-xs" style="color:var(--accent)"></i><span class="font-['Outfit'] font-semibold text-xs">Shift ${sh.label}</span></div>
+          <div class="font-['Outfit'] font-bold text-base" style="color:var(--accent)">${sh.start} - ${sh.end}</div>
+          <div class="text-[10px]" style="color:var(--text-muted)">${GS.shiftMode} jam kerja</div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Akses CS LINE -->
+    <div class="p-5 rounded-xl mb-5" style="background:var(--bg-card);border:1px solid var(--border)">
+      <h3 class="font-['Outfit'] font-semibold text-sm mb-3"><i class="fa-solid fa-key mr-2" style="color:var(--accent)"></i>Akses CS LINE</h3>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between p-3 rounded-lg" style="background:var(--bg-primary);border:1px solid var(--border)">
+          <div><div class="text-sm font-medium">Edit Shift Kerja</div><div class="text-[10px]" style="color:var(--text-muted)">Selalu aktif untuk CS LINE</div></div>
+          <div class="flex items-center gap-2"><span class="badge b-ok" style="font-size:9px">Selalu Aktif</span></div>
+        </div>
+        <label class="flex items-center justify-between p-3 rounded-lg cursor-pointer" style="background:var(--bg-primary);border:1px solid var(--border)">
+          <div><div class="text-sm font-medium">Edit Jobdesk</div><div class="text-[10px]" style="color:var(--text-muted)">Izinkan mengatur jobdesk</div></div>
+          <input type="checkbox" id="csaJD" ${a.canEditJobdesk?'checked':''} class="w-5 h-5 accent-amber-500 cursor-pointer">
+        </label>
+        <label class="flex items-center justify-between p-3 rounded-lg cursor-pointer" style="background:var(--bg-primary);border:1px solid var(--border)">
+          <div><div class="text-sm font-medium">Lihat Panel Lain</div><div class="text-[10px]" style="color:var(--text-muted)">Melihat data panel lain</div></div>
+          <input type="checkbox" id="csaView" ${a.canViewOtherPanel?'checked':''} class="w-5 h-5 accent-amber-500 cursor-pointer">
+        </label>
+      </div>
+    </div>
+
+    <!-- Ganti Password -->
+    <div class="p-5 rounded-xl" style="background:var(--bg-card);border:1px solid var(--border)">
+      <h3 class="font-['Outfit'] font-semibold text-sm mb-3"><i class="fa-solid fa-key mr-2" style="color:var(--accent)"></i>Ganti Password Saya</h3>
+      <div class="space-y-3">
+        <input type="password" id="newPass" class="fi" placeholder="Password baru (min 6 karakter)">
+        <button onclick="changeMyPass()" class="btn btn-p btn-sm"><i class="fa-solid fa-save"></i>Ubah Password</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindSettings(){
+  const jdEl=document.getElementById('csaJD');
+  const vwEl=document.getElementById('csaView');
+  if(jdEl)jdEl.addEventListener('change',async()=>{GS.csAccess.canEditJobdesk=jdEl.checked;await saveSettings();toast('Akses diperbarui.','success')});
+  if(vwEl)vwEl.addEventListener('change',async()=>{GS.csAccess.canViewOtherPanel=vwEl.checked;await saveSettings();toast('Akses diperbarui.','success')});
+}
+
+async function setShiftMode(mode){
+  GS.shiftMode=mode;await saveSettings();toast(`Mode shift diubah ke ${mode} Jam.`,'success');renderDash();
+}
+
+async function changeMyPass(){
+  const p=document.getElementById('newPass').value;
+  if(!p||p.length<6){toast('Password minimal 6 karakter!','warning');return}
+  try{await auth.currentUser.updatePassword(p);toast('Password berhasil diubah!','success');document.getElementById('newPass').value=''}catch(e){toast('Gagal: '+e.message,'danger')}
+}
+
+// ============================================
+// REFRESH DATA
+// ============================================
+async function refreshData(){
+  await Promise.all([loadStaff(),loadIzin(),loadSettings()]);
+  renderDash();toast('Data di-refresh.','info');
+}
+
+// ============================================
+// TIMER LOOP — update countdown setiap detik
+// ============================================
+function startGlobalTimer(){
+  timerInt=setInterval(()=>{
+    // Update semua timer di halaman
+    document.querySelectorAll('[data-timer]').forEach(el=>{
+      const id=el.dataset.timer;
+      const rec=izinRecords.find(r=>r.id===id);
+      if(!rec||rec.status!=='keluar')return;
+      const elapsed=Date.now()-rec.timestampKeluar;
+      const durMs=rec.durasiMenit*60000;
+      const rem=durMs-elapsed;
+      const isOT=rem<=0;
+      el.textContent=(isOT?'+':'')+fmtTime(rem);
+      el.style.color=isOT?'var(--danger)':'var(--text-primary)';
+
+      const card=el.closest('.rounded-xl');
+      if(card){
+        const pb=card.querySelector('.timer-fill');
+        if(pb){const prog=Math.min(100,(elapsed/durMs)*100);pb.style.width=prog+'%';pb.style.background=isOT?'var(--danger)':prog>75?'#f59e0b':'var(--success)'}
+        if(isOT&&!card.classList.contains('ot-pulse')){card.classList.add('ot-pulse');card.style.borderColor='rgba(239,68,68,.4)'}
+      }
     });
-}
-<\/script>
-</body>
-</html>`;
-}
 
-// Helper
-function escapeHtml(text) {
-    if (!text) return '';
-    return text.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
+    // Update timer izin pribadi
+    const myTimerEl=document.getElementById('myTimer');
+    if(myTimerEl){
+      const tid=myTimerEl.dataset.tid;
+      const rec=izinRecords.find(r=>r.id===tid);
+      if(rec&&rec.status==='keluar'){
+        const elapsed=Date.now()-rec.timestampKeluar;
+        const durMs=rec.durasiMenit*60000;
+        const rem=durMs-elapsed;
+        const isOT=rem<=0;
+        myTimerEl.textContent=(isOT?'+':'')+fmtTime(rem);
+        myTimerEl.style.color=isOT?'var(--danger)':'var(--text-primary)';
+        const bar=document.getElementById('myTimerBar');
+        if(bar){const prog=Math.min(100,(elapsed/durMs)*100);bar.style.width=prog+'%';bar.style.background=isOT?'var(--danger)':prog>75?'#f59e0b':'var(--success)'}
+      }
+    }
+
+    // Notifikasi overtime baru
+    izinRecords.filter(r=>r.status==='keluar').forEach(r=>{
+      const elapsed=Date.now()-r.timestampKeluar;
+      const durMs=r.durasiMenit*60000;
+      const k='ot_n_'+r.id;
+      if(elapsed>durMs&&!sessionStorage.getItem(k)){
+        sessionStorage.setItem(k,'1');
+        toast(`${r.staffName} melewati batas waktu izin!`,'danger');
+        // Auto-update status
+        updateIzin(r.id,{terlambat:true});
+      }
     });
+  },1000);
 }
 
-// Generate script utama
-async function generateScript() {
-    const input = document.getElementById('inputText').value;
-    if (!input.trim()) {
-        showNotif('Masukkan prediksi terlebih dahulu!');
-        return;
+// ============================================
+// INISIALISASI OTOMATIS
+// ============================================
+async function autoCreateLeader(){
+  try{
+    const snap=await db.collection("staff").where("role","==","LEADER").limit(1).get();
+    if(snap.empty){
+      const e='leader@izinstaf.com',p='leader123';
+      try{
+        const cred=await auth.createUserWithEmailAndPassword(e,p);
+        await db.collection("staff").doc(cred.user.uid).set({uid:cred.user.uid,name:'Admin Leader',email:e,role:'LEADER',shift:'Pagi',createdAt:new Date().toISOString()});
+        console.log('Leader default dibuat:',e,'/',p);
+      }catch(err){console.log('Leader mungkin sudah ada:',err.message)}
     }
-    
-    const outputDiv = document.getElementById('outputCode');
-    outputDiv.innerHTML = '⏳ Memproses...';
-    
-    if (!isDataReady) {
-        outputDiv.innerHTML = '⏳ Menunggu data Google Sheets...';
-        await new Promise(resolve => {
-            const check = setInterval(() => {
-                if (isDataReady) { clearInterval(check); resolve(); }
-            }, 200);
-            setTimeout(resolve, 5000);
-        });
-    }
-    
-    const leagues = parseInput(input);
-    if (leagues.length === 0) {
-        outputDiv.innerHTML = '❌ Format tidak dikenali! Gunakan: LIGA\\n00/00 00:00 TeamA vs TeamB 1:0';
-        return;
-    }
-    
-    // Update statistik
-    const totalMatches = leagues.reduce((sum, l) => sum + l.matches.length, 0);
-    document.getElementById('statLeagues').textContent = leagues.length;
-    document.getElementById('statMatches').textContent = totalMatches;
-    
-    // Hitung logo yang ditemukan
-    let foundLogos = 0;
-    let totalTeams = 0;
-    for (const league of leagues) {
-        for (const match of league.matches) {
-            totalTeams += 2;
-            if (logoDatabase[match.team1.toLowerCase()]) foundLogos++;
-            if (logoDatabase[match.team2.toLowerCase()]) foundLogos++;
+  }catch(e){console.error('Auto create err:',e)}
+}
+
+// Jalankan saat load
+window.onload=async()=>{
+  await autoCreateLeader();
+  startGlobalTimer();
+
+  // Auto-login jika sudah ada session
+  auth.onAuthStateChanged(async(user)=>{
+    if(user&&!CU){
+      try{
+        const doc=await db.collection("staff").doc(user.uid).get();
+        if(doc.exists){
+          const data=doc.data();
+          CU={uid:user.uid,email:data.email,role:data.role,name:data.name,shift:data.shift||'Pagi'};
+          const pi=PI(CU.role);
+          document.getElementById('hdRole').textContent=pi.label;
+          document.getElementById('hdRole').className=`badge ${pi.css}`;
+          document.getElementById('hdName').textContent=CU.name;
+          document.getElementById('loginScr').classList.add('hidden');
+          document.getElementById('dashScr').classList.remove('hidden');
+          await Promise.all([loadStaff(),loadIzin(),loadSettings()]);
+          GS.tab=isL()?'home':'izin';
+          renderDash();
         }
+      }catch(e){console.error('Auto-auth err:',e)}
     }
-    document.getElementById('statLogos').textContent = `${foundLogos}/${totalTeams}`;
-    
-    // Render preview
-    renderPreview(leagues);
-    
-    // Generate output
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const dateStr = `${today.toLocaleDateString('id-ID')} - ${tomorrow.toLocaleDateString('id-ID')}`;
-    
-    const htmlOutput = generateHtmlOutput(leagues, dateStr);
-    outputDiv.textContent = htmlOutput;
-    
-    showNotif(`✅ Script selesai! ${foundLogos}/${totalTeams} logo ditemukan`);
-}
-
-function renderPreview(leagues) {
-    const container = document.getElementById('previewMatches');
-    const emptyDiv = document.getElementById('previewEmpty');
-    
-    if (!leagues.length) {
-        container.innerHTML = '';
-        emptyDiv.style.display = 'block';
-        return;
-    }
-    
-    emptyDiv.style.display = 'none';
-    let html = '';
-    
-    for (const league of leagues) {
-        html += `<div style="margin:15px 0; border:2px solid #00ff88; border-radius:10px; overflow:hidden;">
-            <div style="background:#001a0d; padding:10px; text-align:center; border-bottom:1px solid #00ff88;">
-                <strong style="color:#00ff88;">🏆 ${escapeHtml(league.name)} 🏆</strong>
-            </div>`;
-        
-        for (let i = 0; i < league.matches.length; i++) {
-            const m = league.matches[i];
-            const bg = i % 2 === 0 ? 'rgba(0,255,136,0.05)' : 'rgba(0,0,0,0.3)';
-            const logo1 = getLogo(m.team1);
-            const logo2 = getLogo(m.team2);
-            
-            html += `
-            <div style="display:flex; align-items:center; padding:8px; border-bottom:1px solid #1a3a1a; background:${bg};">
-                <div style="flex:1; display:flex; align-items:center; gap:8px;">
-                    <img src="${logo1}" style="width:30px; height:30px; object-fit:contain;" onerror="this.src='${getLogo(m.team1)}'">
-                    <span style="font-size:11px;">${escapeHtml(m.team1)}</span>
-                </div>
-                <div style="width:70px; text-align:center;">
-                    <div style="font-size:14px; font-weight:bold; color:#00ff88;">${m.score1}:${m.score2}</div>
-                    <div style="font-size:8px;">${m.date}<br>${m.time}</div>
-                </div>
-                <div style="flex:1; display:flex; align-items:center; gap:8px; justify-content:flex-end;">
-                    <span style="font-size:11px;">${escapeHtml(m.team2)}</span>
-                    <img src="${logo2}" style="width:30px; height:30px; object-fit:contain;" onerror="this.src='${getLogo(m.team2)}'">
-                </div>
-            </div>`;
-        }
-        html += `</div>`;
-    }
-    
-    container.innerHTML = html;
-    document.getElementById('previewDateHeader').innerHTML = `📅 ${new Date().toLocaleDateString('id-ID')}`;
-}
-
-function clearAll() {
-    document.getElementById('inputText').value = '';
-    document.getElementById('outputCode').innerHTML = 'Klik GENERATE untuk membuat script HTML...';
-    document.getElementById('previewMatches').innerHTML = '';
-    document.getElementById('previewEmpty').style.display = 'block';
-    document.getElementById('statLeagues').textContent = '0';
-    document.getElementById('statMatches').textContent = '0';
-    document.getElementById('statLogos').textContent = '0';
-    showNotif('✓ Semua dibersihkan!');
-}
-
-function copyOutput() {
-    const output = document.getElementById('outputCode').textContent;
-    if (!output || output.includes('Klik GENERATE') || output.includes('Memproses')) {
-        showNotif('⚠️ Belum ada script yang di-generate!');
-        return;
-    }
-    navigator.clipboard.writeText(output).then(() => showNotif('✅ Script dicopy!'));
-}
-
-function showNotif(msg) {
-    const n = document.getElementById('notification');
-    n.textContent = msg;
-    n.style.display = 'block';
-    setTimeout(() => n.style.display = 'none', 3000);
-}
-
-function updateAutoDate() {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    document.getElementById('autoDate').innerHTML = `${today.toLocaleDateString('id-ID', {day:'numeric', month:'long'})} - ${tomorrow.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}`;
-}
-
-// Start
-updateAutoDate();
-fetchSheetData();
+  });
+};
 </script>
 </body>
 </html>
