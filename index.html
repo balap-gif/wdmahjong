@@ -421,10 +421,17 @@
         window.toggleJobdesk=async(id,status)=>{try{await updateDoc(doc(db,"jobdesk",id),{status:status==='selesai'?'belum':'selesai'});}catch(e){showToast(e.message,"error");}};
         window.deleteJobdesk=async(id)=>{try{await deleteDoc(doc(db,"jobdesk",id));showToast("Dihapus","success");}catch(e){showToast(e.message,"error");}};
 
-        // PENGUMUMAN
+        // PENGUMUMAN (FIXED TYPPO ERROR)
         async function loadAnnouncements(){try{const snap=await getDocs(collection(db,"announcements"));let docs=[];snap.forEach(d=>docs.push({id:d.id,...d.data()}));docs.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));let h='';docs.forEach(a=>{const dateStr=new Date(a.createdAt).toLocaleString('id-ID');let delBtn='';if(currentUserData.role==='LEADER'||currentUserData.role==='CS LINE'){delBtn=`<button onclick="deleteAnnouncement('${a.id}')" class="text-red-400 hover:text-red-300 text-xs ml-2 transition hover:scale-110"><i class="fa-solid fa-times-circle"></i></button>`;}h+=`<div class="bg-slate-800 p-4 rounded-lg border border-yellow-500/30 shadow-md"><div class="flex justify-between items-center mb-2"><span class="text-sm text-yellow-400 font-bold"><i class="fa-solid fa-user-pen mr-1"></i> ${a.author} ${delBtn}</span><span class="text-xs text-slate-500">${dateStr}</span></div><p class="text-white text-sm leading-relaxed">${a.text}</p></div>`;});document.getElementById('announceList').innerHTML=h||'<p class="text-slate-500 text-sm text-center">Belum ada pengumuman</p>';const last=docs[0];if(last){document.getElementById('announcementBanner').classList.remove('hidden');document.getElementById('announceText').innerText=last.text;}else{document.getElementById('announcementBanner').classList.add('hidden');}}catch(e){showToast("Gagal memuat pengumuman: "+e.message,"error");}}
+        
         window.postAnnouncement=async()=>{const t=document.getElementById('announceInput').value.trim();if(!t)return showToast("Tulis pengumuman dulu!","warning");try{await addDoc(collection(db,"announcements"),{text:t,author:currentUserData.nama,createdAt:new Date().toISOString()});document.getElementById('announceInput').value='';showToast("Pengumuman diposting!","success");loadAnnouncements();}catch(e){showToast(e.message,"error");}};
-        window.deleteAnnouncement=async(id=>{if(confirm("Hapus pengumuman ini?")){try{await deleteDoc(doc(db,"announcements",id));showToast("Pengumuman dihapus","info");loadAnnouncements();}catch(e){showToast(e.message,"error");}}});
+        
+        // Ini baris yang sebelumnya error typo, sekarang sudah diperbaiki
+        window.deleteAnnouncement = async (id) => {
+            if(confirm("Hapus pengumuman ini?")) {
+                try { await deleteDoc(doc(db, "announcements", id)); showToast("Pengumuman dihapus","info"); loadAnnouncements(); } catch(e) { showToast(e.message,"error"); }
+            }
+        };
 
         // RIWAYAT
         window.loadHistory=async(filter)=>{try{let qRef=collection(db,"permits");const now=new Date();let constraints=[];if(filter==='today'){constraints.push(where("tanggal","==",getToday()));}else if(filter==='yesterday'){const d=new Date(now.setDate(now.getDate()-1)).toISOString().split('T')[0];constraints.push(where("tanggal","==",d));}else if(filter==='week'){const d=new Date();d.setDate(d.getDate()-7);constraints.push(where("tanggal",">=",d.toISOString().split('T')[0]));}else if(filter==='month'){const d=new Date();d.setMonth(d.getMonth()-1);constraints.push(where("tanggal",">=",d.toISOString().split('T')[0]));}
